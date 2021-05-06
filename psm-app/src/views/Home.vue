@@ -18,6 +18,13 @@
             <it-icon name="school" style="font-size: 1.2rem" />
           </it-button>
         </router-link>
+
+        <router-link to="/proposal">
+          <it-button outlined text>
+            <it-icon name="description" style="font-size: 1.2rem" />
+          </it-button>
+        </router-link>
+
       </div>
 
       <div
@@ -76,6 +83,7 @@ export default {
 
         case 2:
         case 3:
+          // router.push({ path: "/lecturer" });
           break;
 
         case 4:

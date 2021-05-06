@@ -23,6 +23,17 @@ const routes = [
         path: 'student',
         name: 'Student',
         component: () => import('../components/Student.vue')
+      },
+      {
+        path: 'proposal',
+        name: 'ProposalList',
+        component: () => import('../views/Proposal.vue'),
+      },
+      {
+        path:'detail',
+        name:"Proposal",
+        component: () => import('../components/Proposal.vue'),
+        props: route => ({proposal_uid: route.query.proposal_uid})
       }
     ]
   },

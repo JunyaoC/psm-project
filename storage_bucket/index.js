@@ -1,11 +1,9 @@
 const express = require('express');
 var cors = require('cors')
-var multer  = require('multer')
 
-var sharpe  = require('sharp')
+var fs = require('fs');
+const fileUpload = require('express-fileupload');
 
-const formidable = require('formidable');
- 
 const app = express();
 app.use(cors())
 app.set('etag', false)
@@ -15,16 +13,8 @@ app.use((req, res, next) => {
   next()
 })
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'media/')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname)
-  }
-})
+app.use(fileUpload());
 
-const upload = multer({storage: storage})
 // app.get('/', (req, res) => {
 //   res.send(`
 //     <h2>With <code>"express"</code> npm package</h2>
@@ -35,26 +25,89 @@ const upload = multer({storage: storage})
 //     </form>
 //   `);
 // });
- 
-app.post('/api/upload',upload.single('avatar'), async (req, res, next) => {
+
+app.post('/api/upload', async (req, res, next) => {
   // const form = formidable();
-  console.log(req.file)
+
+  req.files.avatar.mv('media/' + req.files.avatar.name)
   res.send({
     status:"ok"
   })
- 
-  // form.parse(req, (err, fields, files) => {
-  //   if (err) {
-  //     next(err);
-  //     return;
-  //   }
-    
-  //   res.json({ fields, files });
-  // });
+});
+
+app.post('/api/proposal_upload', async (req, res, next) => {
+
+  var dir = './proposal/' + req.body.proposal_uid + '/'
+
+  if (!fs.existsSync(dir)){
+      fs.mkdirSync(dir);
+  }
+
+  
+
+  if(req.files.proposal_file.length > 1 ){
+    for(let file of req.files.proposal_file){
+      console.log(file.name)
+      file.mv(dir + file.name)
+    }
+  }else{
+    req.files.proposal_file.mv(dir + req.files.proposal_file.name)
+  }
+
+  
+
+
+  
+  res.send({
+    status:"ok"
+  })
 });
 
 app.use('/media', express.static('./media'));
- 
+
+app.use('/proposal/list/:proposal_uid', async (req,res) => {
+
+  let path = `proposal/${req.params.proposal_uid}`
+
+  fs.readdir(path, (err, files) => {
+
+    let file_list = [];
+
+    if(files){
+      files.forEach(file => {
+        file_list.push(file)
+      });
+  
+      res.send(file_list)
+    }
+
+
+
+  });
+
+})
+
+app.use('/proposal/remove/:proposal_uid/:file_name', async (req,res) => {
+
+  let path = `proposal/${req.params.proposal_uid}/${req.params.file_name}`
+
+  try {
+    fs.unlinkSync(path)
+    //file removed
+  } catch(err) {
+    console.error(err)
+  }
+
+  res.send('ok')
+
+})
+
+app.use('/proposal/:proposal_uid/:file_name', async (req,res) => {
+
+  let path = `proposal/${req.params.proposal_uid}/${req.params.file_name}`
+  res.sendFile(path, {root: __dirname});
+})
+
 app.listen(3000, () => {
   console.log('Server listening on http://localhost:3000 ...');
 });

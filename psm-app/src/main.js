@@ -6,5 +6,7 @@ import store from './store'
 import Equal from 'equal-vue'
 import 'equal-vue/dist/style.css'
 
-createApp(App).use(store).use(router).use(Equal).mount('#app')
+import VueFinalModal from 'vue-final-modal'
+
+createApp(App).use(store).use(router).use(Equal).use(VueFinalModal()).mount('#app')
 

@@ -59,4 +59,11 @@ body{
    }
 
 a { text-decoration: none; }
+
+.ProseMirror{
+  min-height: 60vh;
+  background:rgb(233, 233, 233);
+  border-radius: 1rem;
+  padding: 1rem;
+}
 </style>

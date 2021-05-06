@@ -20,13 +20,36 @@
             <th>Domain</th>
             <th>Subject</th>
             <th>E-Mail</th>
+            <th style="text-align: left">Action</th>
+            <th style="text-align: center">Supervise</th>
           </tr>
 
-          <tr class="dataRow" v-for="lecturer in lecturers" :key="lecturer" @click="openForm('edit', lecturer)">
+          <tr class="dataRow" v-for="lecturer in lecturers" :key="lecturer">
             <td>{{ lecturer.name }}</td>
             <td>{{ lecturer.domain }}</td>
             <td>{{ lecturer.subject.name }}</td>
             <td>{{ lecturer.email }}</td>
+            <td>
+              <it-button @click="openForm('edit', lecturer)" size="small"
+                >edit</it-button
+              >
+            </td>
+            <td>
+                <ol>
+<li v-for="sv of lecturer.supervise" :key="sv" style="margin-bottom:5px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                    
+                    <span style="margin: 0 1rem">{{ sv.student.name }}</span>
+                    
+                  </div>
+                  <it-button v-if="sv.status == 'pending'" size="small" @click="reivewSVRequest(lecturer, sv)" type="primary" >Review Request</it-button >
+                  <it-button v-if="sv.status != 'pending'" size="small" @click="reivewSVRequest(lecturer, sv)" >View</it-button >
+                  </div>
+                </li>    
+                </ol>
+                          
+            </td>
           </tr>
         </table>
       </it-tab>
@@ -37,6 +60,7 @@
             <th>Matrics No.</th>
             <th>Major</th>
             <th>E-Mail</th>
+            <th>Semester</th>
           </tr>
 
           <tr
@@ -49,11 +73,71 @@
             <td>{{ student.matric }}</td>
             <td>{{ student.subject.name }}</td>
             <td>{{ student.email }}</td>
+            <td>{{ student.semester}}</td>
           </tr>
         </table>
       </it-tab>
     </it-tabs>
   </div>
+
+  <it-modal v-model="svRequestModal" :closable-mask="false">
+    <div style="padding: 1rem">
+      <div
+        style="
+          padding: 1rem;
+          border-radius: 1rem;
+          background: #f8f8f8;
+          margin-bottom: 1rem;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <div style="width: 100%">
+          <span style="font-size: 2rem; font-weight: 700">{{viewStudent.status == 'pending' ? 'Review Request' : 'Student Info'}}</span>
+        </div>
+
+        <it-button type="danger" @click="svRequestModal = false"
+          >cancel</it-button
+        >
+      </div>
+
+      <h3>Student Info</h3>
+
+      <table v-if="viewStudent" style="width: 100%; text-align: left">
+        <tr>
+          <th>Name</th>
+          <td>{{ viewStudent.student.name }}</td>
+        </tr>
+        <tr>
+          <th>Email</th>
+          <td>{{ viewStudent.student.email }}</td>
+        </tr>
+        <tr>
+          <th>Contact</th>
+          <td>{{ viewStudent.student.contact }}</td>
+        </tr>
+      </table>
+
+      <div
+        v-if="viewStudent.status == 'pending'"
+        style="
+          display: flex;
+          justify-content: space-around;
+          width: 100%;
+          align-items: center;
+          margin-top: 1rem;
+        "
+      >
+        <it-button type="success" size="small" @click="approveSVRequest(true)"
+          >Approve</it-button
+        >
+        <it-button type="danger" size="small" @click="approveSVRequest(false)"
+          >Reject</it-button
+        >
+      </div>
+    </div>
+  </it-modal>
 
   <it-modal v-model="drawerVisible" :closable-mask="false">
     <div style="padding: 1rem">
@@ -71,7 +155,7 @@
         <div style="width: 100%" v-if="operation == 'create'">
           <span style="font-size: 2rem; font-weight: 700">New User</span>
         </div>
-        
+
         <div style="width: 100%" v-if="operation == 'edit'">
           <span style="font-size: 2rem; font-weight: 700">Update User</span>
         </div>
@@ -82,7 +166,7 @@
       </div>
 
       <div style="display: flex; justify-content: space-between; width: 100%">
-        <div>
+                <div>
           <p>User Type</p>
           <div
             style="
@@ -98,6 +182,10 @@
             />
           </div>
         </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; width: 100%">
+
 
         <div>
           <p>Subject</p>
@@ -153,16 +241,44 @@
             />
           </div>
         </div>
-      </div>
 
+        <div>
+          <p v-if="formData.user_type == 'Student'">Semester</p>
+          <div
+            v-if="formData.user_type == 'Student'"
+            style="
+              display: flex;
+              width: 100%;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <it-select
+              v-model="formData.user_semester"
+              :options="[1,2,3,4,5,6,7,8]"
+              track-by="name"
+            />
+          </div>
+        </div>
+
+      </div>
       <div v-if="formData.user_type == 'Lecturer'" style="padding: 1rem 0">
         <it-switch v-model="formData.user_committee" label="PSM Committee" />
       </div>
 
       <h3>Login Credentials</h3>
       <it-input label-top="Email" v-model="formData.user_email" />
-      <it-input v-if="operation == 'create'" label-top="Password" v-model="formData.user_password" />
-      <it-button style="margin-top:1rem;" v-if="operation == 'edit'" @click="changePassword()">Change Password</it-button>
+      <it-input
+        v-if="operation == 'create'"
+        label-top="Password"
+        v-model="formData.user_password"
+      />
+      <it-button
+        style="margin-top: 1rem"
+        v-if="operation == 'edit'"
+        @click="changePassword()"
+        >Change Password</it-button
+      >
       <h3>User Info</h3>
       <label>Avatar</label>
       <div
@@ -183,19 +299,37 @@
         label-top="Matric Number"
         v-model="formData.user_matric"
       />
-      
-      <div style="width:100%;display:flex;justify-content:space-between;align-items:center;">
-        <it-button
-        type="primary"
-        v-if="operation == 'create'"
-        style="margin-top: 1rem"
-        @click="submitForm()"
-        >Create</it-button
-      >
-      <it-button type="primary" v-if="operation == 'edit'" style="margin-top: 1rem" @click="submitForm()" >Update</it-button >
-      <it-button type="danger" v-if="operation == 'edit'" style="margin-top: 1rem" @click="deleteUser()" >Delete</it-button >
-      </div>
 
+      <div
+        style="
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <it-button
+          type="primary"
+          v-if="operation == 'create'"
+          style="margin-top: 1rem"
+          @click="submitForm()"
+          >Create</it-button
+        >
+        <it-button
+          type="primary"
+          v-if="operation == 'edit'"
+          style="margin-top: 1rem"
+          @click="submitForm()"
+          >Update</it-button
+        >
+        <it-button
+          type="danger"
+          v-if="operation == 'edit'"
+          style="margin-top: 1rem"
+          @click="deleteUser()"
+          >Delete</it-button
+        >
+      </div>
     </div>
   </it-modal>
 </template>
@@ -212,9 +346,9 @@
   transition: all 0.3s;
 }
 
-.dataRow:hover {
-  background: #d4c1ff;
-}
+// .dataRow:hover {
+//   background: #d4c1ff;
+// }
 </style>
 
 <script>
@@ -223,7 +357,7 @@ const endpoint = "http://localhost:3000";
 
 import driver from "../neo4j.js";
 import { uid } from "uid";
-import { sha256 } from 'js-sha256';
+import { sha256 } from "js-sha256";
 
 export default {
   name: "User",
@@ -248,12 +382,16 @@ export default {
         user_contact: "",
         user_matric: "",
         user_session: "",
+        user_semester: ""
       },
       subjects: [],
       sessions: [],
       lecturers: [],
       students: [],
       payload: "",
+      svRequestModal: false,
+      viewLect: false,
+      viewStudent: false,
     };
   },
   methods: {
@@ -284,27 +422,146 @@ export default {
       });
     },
 
+    reivewSVRequest(lect, sv) {
+      this.svRequestModal = true;
+      this.viewLect = lect;
+      this.viewStudent = sv;
+    },
+
+    approveSVRequest(decision) {
+      switch (decision) {
+        case true:
+          if (confirm("Approve Request?")) {
+            var session1 = driver.session();
+
+            session1
+              .run(
+                ` 
+                  MATCH (lect:User {uid:$lect_uid})<-[r1:REQUEST_SUPERVISE]-(stud:User {uid:$stud_id})
+                  CREATE (lect)-[nr1:SUPERVISOR_OF]->(stud)
+                  SET nr1=r1
+                  WITH r1
+                  DELETE r1
+                  `,
+                {
+                  lect_uid: this.viewLect.uid,
+                  stud_id: this.viewStudent.student.uid,
+                }
+              )
+              .then((result) => {
+                this.svRequestModal = false;
+
+                this.$Notification({
+                  title: "Success 🎊",
+                  text: `Approved User Supervisor Request`,
+                });
+
+                this.fetchUser();
+
+                session1.close();
+              });
+          }
+          break;
+
+        case false:
+          if (confirm("Reject Request?")) {
+            var session1 = driver.session();
+
+            session1
+              .run(
+                `
+                  MATCH (lect:User {uid:$lect_uid})<-[r1:REQUEST_SUPERVISE]-(stud:User {uid:$stud_id})
+                  CREATE (lect)-[nr1:REJECT_SUPERVISE]->(stud)
+                  SET nr1=r1
+                  WITH r1
+                  DELETE r1
+              `,
+                {
+                  lect_uid: this.viewLect.uid,
+                  stud_id: this.viewStudent.student.uid,
+                }
+              )
+              .then((result) => {
+                this.svRequestModal = false;
+
+                this.$Notification({
+                  title: "Completed",
+                  text: `Rejected User Supervisor Request`,
+                });
+
+                this.fetchUser();
+
+                session1.close();
+              });
+          }
+          break;
+
+          break;
+      }
+    },
+
     async fetchUser() {
       var session1 = driver.session();
       var session2 = driver.session();
 
       session1
         .run(
-          "MATCH (u:User)-[r:LECTURER_OF]->(s:Subject) WHERE u.level >= 2 AND u.level <= 3 RETURN u,s"
+          "MATCH p = (u:User)-[*1..1]-() where u.level >= 2 AND u.level <=3 RETURN u,p"
         )
         .then((result) => {
           this.lecturers = [];
 
-          result.records.forEach((data) => {
+          let lectMap = new Map();
 
-            let user = {
-              ...data.get("u")["properties"],
-              subject: data.get("s")["properties"],
+          result.records.forEach((data) => {
+            let path = data.get("p");
+            let lectObj;
+
+            if (lectMap.has(path.start.properties.uid)) {
+              lectObj = lectMap.get(path.start.properties.uid);
+              delete lectObj.password;
+            } else {
+              lectObj = { ...path.start.properties };
             }
 
-            delete user.password;
+            path.segments.forEach((segment) => {
+              if (segment.relationship.type == "REQUEST_SUPERVISE") {
+                if (typeof lectObj["supervise"] != "object") {
+                  lectObj["supervise"] = [];
+                }
 
-            this.lecturers.push(user);
+                lectObj["supervise"].push({
+                  status: "pending",
+                  student: segment.end.properties,
+                });
+              }
+
+              if (segment.relationship.type == "SUPERVISOR_OF") {
+                // lectObj["supervise"] = {
+                //   status: "approved",
+                //   student: segment.end.properties,
+                // };
+
+                if (typeof lectObj["supervise"] != "object") {
+                  lectObj["supervise"] = [];
+                }
+
+                lectObj["supervise"].push({
+                  status: "approved",
+                  student: segment.end.properties,
+                });
+              }
+
+              if (segment.relationship.type == "LECTURER_OF") {
+                lectObj["subject"] = segment.end.properties;
+              }
+            });
+
+            lectMap.set(path.start.properties.uid, lectObj);
+          });
+
+          lectMap.forEach((val, key) => {
+            this.lecturers.push({ ...val });
           });
 
           session1.close();
@@ -322,7 +579,7 @@ export default {
               ...data.get("u")["properties"],
               subject: data.get("s")["properties"],
               session: data.get("s1")["properties"],
-            }
+            };
 
             delete user.password;
 
@@ -356,6 +613,7 @@ export default {
             user_domain: "",
             user_contact: "",
             user_matric: "",
+            user_semester: ""
           };
 
           break;
@@ -377,6 +635,7 @@ export default {
               user_contact: this.payload.contact,
               user_matric: this.payload.matric,
               user_session: this.payload.session,
+              user_semester: this.payload.semester,
             };
           }
 
@@ -387,8 +646,7 @@ export default {
               user_name: this.payload.name,
               user_password: this.payload.password,
               user_avatar: "",
-              user_avatar_src:
-                endpoint + "/media/avatar_" + this.payload.uid + ".png",
+              user_avatar_src: endpoint + "/media/avatar_" + this.payload.uid + ".png",
               user_subject: this.payload.subject,
               user_domain: this.payload.domain,
               user_contact: this.payload.contact,
@@ -426,45 +684,41 @@ export default {
       });
     },
 
-    changePassword(){
+    changePassword() {
       this.drawerVisible = false;
 
       let newPass = prompt("Enter New Password");
-      
+
       var session = driver.session();
 
       session
-          .run("MATCH (u:User {uid:$uid}) SET u.password = $pwd", {
-            uid: this.payload.uid,
-            pwd: sha256(newPass)
-          }).then( () => {
-            session.close()
-          })
-
-
+        .run("MATCH (u:User {uid:$uid}) SET u.password = $pwd", {
+          uid: this.payload.uid,
+          pwd: sha256(newPass),
+        })
+        .then(() => {
+          session.close();
+        });
     },
 
-    deleteUser(){
-      if(confirm("Confirm Delete User? Action is Permanent.")){
-
+    deleteUser() {
+      if (confirm("Confirm Delete User? Action is Permanent.")) {
         this.drawerVisible = false;
-        
+
         var session = driver.session();
 
         session
           .run("MATCH (u:User {uid:$uid}) DETACH DELETE u", {
             uid: this.payload.uid,
-          }).then( () => {
-            session.close()
-            this.fetchUser()
           })
-
-
+          .then(() => {
+            session.close();
+            this.fetchUser();
+          });
       }
     },
 
     async submitForm() {
-
       switch (this.operation) {
         case "create":
           let userUID = uid();
@@ -522,6 +776,7 @@ export default {
                       level: $level,
                       contact: $contact,
                       matric: $matric,
+                      semester: $semester,
                       uid:$uid
                     })
                   `,
@@ -532,6 +787,7 @@ export default {
                     level: this.formData.user_level,
                     contact: this.formData.user_contact,
                     matric: this.formData.user_matric,
+                    semester: this.formData.user_semester,
                     uid: userUID,
                   }
                 )
@@ -564,6 +820,7 @@ export default {
                         user_domain: "",
                         user_contact: "",
                         user_matric: "",
+                        user_semester: "",
                       };
 
                       this.drawerVisible = false;
@@ -645,6 +902,7 @@ export default {
                         user_domain: "",
                         user_contact: "",
                         user_matric: "",
+                        user_semester:""
                       };
 
                       this.drawerVisible = false;
@@ -691,34 +949,37 @@ export default {
           switch (this.formData.user_type) {
             case "Student":
               session
-                .run(
-
-                  `MATCH (u:User {uid:$uid})-[r]-() DELETE r `, { uid: this.payload.uid, } 
-                  
-                )
+                .run(`MATCH (u:User {uid:$uid})-[r]-() DELETE r `, {
+                  uid: this.payload.uid,
+                })
                 .then(() => {
-                  session.run(
-                  `MATCH (u:User {
+                  session
+                    .run(
+                      `MATCH (u:User {
                       uid:$uid
                     }) SET
                       u.email = $email,
                       u.name = $name,
                       u.level =  $level,
                       u.contact =  $contact,
-                      u.matric =  $matric
+                      u.matric =  $matric,
+                      u.semester = $semester
 
                       REMOVE u.domain
 
                       RETURN u
                   `,
-                  {
-                    email: this.formData.user_email,
-                    name: this.formData.user_name,
-                    level: 1,
-                    contact: this.formData.user_contact,
-                    matric: this.formData.user_matric,
-                    uid: this.payload.uid,
-                  } ) .then(() => {
+                      {
+                        email: this.formData.user_email,
+                        name: this.formData.user_name,
+                        level: 1,
+                        contact: this.formData.user_contact,
+                        matric: this.formData.user_matric,
+                        uid: this.payload.uid,
+                        semester: this.formData.user_semester
+                      }
+                    )
+                    .then(() => {
                       session
                         .run(
                           `
@@ -747,7 +1008,6 @@ export default {
               break;
 
             case "Lecturer":
-
               let query = "";
 
               if (this.formData.user_committee) {
@@ -770,14 +1030,13 @@ export default {
               }
 
               session
-                .run(
-                  `MATCH (u:User {uid:$uid})-[r]-() DELETE r `, { uid: this.payload.uid, } 
-                  
-                )
+                .run(`MATCH (u:User {uid:$uid})-[r]-() DELETE r `, {
+                  uid: this.payload.uid,
+                })
                 .then(() => {
                   session
                     .run(
-                     `MATCH (u:User {
+                      `MATCH (u:User {
                       uid:$uid
                     }) SET
                       u.email = $email,
@@ -790,23 +1049,21 @@ export default {
 
                       RETURN u
                   `,
-                  {
-                    email: this.formData.user_email,
-                    name: this.formData.user_name,
-                    level: this.formData.user_level,
-                    contact: this.formData.user_contact,
-                    domain: this.formData.user_domain,
-                    uid: this.payload.uid,
-                  }
+                      {
+                        email: this.formData.user_email,
+                        name: this.formData.user_name,
+                        level: this.formData.user_level,
+                        contact: this.formData.user_contact,
+                        domain: this.formData.user_domain,
+                        uid: this.payload.uid,
+                      }
                     )
                     .then(() => {
                       session
-                        .run(query,
-                          {
-                            uid: this.payload.uid,
-                            s_uid: this.formData.user_subject.uid
-                          }
-                        )
+                        .run(query, {
+                          uid: this.payload.uid,
+                          s_uid: this.formData.user_subject.uid,
+                        })
                         .then(() => {
                           this.drawerVisible = false;
                           this.fetchUser();
