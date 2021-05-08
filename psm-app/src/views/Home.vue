@@ -83,7 +83,7 @@ export default {
 
         case 2:
         case 3:
-          // router.push({ path: "/lecturer" });
+          router.push({ path: "/proposal" });
           break;
 
         case 4:

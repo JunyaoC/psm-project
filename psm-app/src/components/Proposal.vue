@@ -1,23 +1,96 @@
 <template>
   <div style="height: 100%; width: 100%; padding: 1rem">
-    <span>proposal title</span><br>
 
-    <div>
-      <div style="display: flex; align-items: center">
-        <h1 style="margin-right: 1rem">{{ proposal.title }}</h1>
-        <div v-if="proposal.student">
-          <it-button v-if="proposal.student.uid == $store.state.user.uid" style="margin: 0 1rem;" size="small" text @click="editProposal()">edit</it-button>
-        </div>
-        <it-tag style="margin-right: 1rem">{{ proposal.type }}</it-tag>
-        <it-tag>{{ proposal.status_text }}</it-tag>
+    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+
+      <div style="padding:0.5rem;display:flex;align-items:center;">
+        
+
+
+        <div style="display: flex; align-items: center;width:100%;margin-bottom:1rem;">
+          <span style="font-size:2rem;font-weight:900;margin-right:2rem;">{{ proposal.title }}</span>
+            <div v-if="proposal.student">
+              <it-button
+                v-if="proposal.student.uid == $store.state.user.uid"
+                style="margin: 0 1rem"
+                size="small"
+                text
+                @click="editProposal()"
+                >edit</it-button
+              >
+            </div>
+            <it-tag style="margin-right: 1rem">{{ proposal.type }}</it-tag>
+            <it-tag>{{ proposal.status_text }}</it-tag>
+          </div>
       </div>
+      
+    <div style="display:flex;background:white;padding:0.25rem 1rem;border-radius:0.5rem;box-shadow: rgba(100, 100, 111, 0.1) 0px 7px 29px 0px;">
+      <div v-if="proposal.student" style="display:flex; justify-content:flex-start;align-items:center;margin-right:1rem;">
+          <it-avatar
+          :src="proposal.student.avatar"
+          style="margin-right: 1rem"
+        ></it-avatar>
+        <div style="margin-bottom:0.5rem;">
+          <span style="font-size:0.8rem;font-weight:900;">student</span><br>
+          <span>{{ proposal.student.name }}</span>
+        </div>
+        </div>
+
+        <div v-if="proposal.supervisor" style="display:flex; justify-content:flex-start;align-items:center;margin-right:1rem;">
+          <it-avatar
+          :src="proposal.supervisor.avatar"
+          style="margin-right: 1rem"
+        ></it-avatar>
+        <div style="margin-bottom:0.5;">
+          <span style="font-size:0.8rem;font-weight:900;">supervisor</span><br>
+          <span>{{ proposal.supervisor.name }}</span>
+        </div>
+        </div>
+
+        <div v-for="ev of proposal.evaluator" :key="ev" style="display:flex; justify-content:flex-start;align-items:center;">
+          <it-avatar
+          :src="ev.avatar"
+          style="margin-right: 1rem"
+        ></it-avatar>
+        <div style="margin-bottom:0.5rem;">
+          <span style="font-size:0.8rem;font-weight:900;">evaluator</span><br>
+          <span>{{ ev.name }}</span>
+        </div>
+        </div>
+    </div>
     </div>
 
-    <div v-if="proposal.status <= 2" style="display: flex; align-items: center">
-      <span style="margin-right: 1rem">Pending Evaluator Assessment Submission</span>
+
+    <div
+      style="
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      "
+    >
+      <div style="width: 350px;padding:1rem;">
+
+        
+
+        
+
+
+      </div>
+
+      <div style="width: 100%"></div>
+    </div>
+
+    <!-- <div v-if="proposal.status <= 2" style="display: flex; align-items: center">
+      <span style="margin-right: 1rem"
+        >Pending Evaluator Assessment Submission</span
+      >
 
       <it-button
-        v-if="proposal.supervisor.uid == $store.state.user.uid && proposal.status < 1"
+        v-if="
+          proposal.supervisor.uid == $store.state.user.uid &&
+          proposal.status < 1
+        "
         @click="submitForEV()"
         >Submit</it-button
       >
@@ -41,58 +114,7 @@
           >Accept</it-button
         >
       </it-button-group>
-    </div>
-
-    <div v-if="proposal.student">
-      <p>Submitted by</p>
-      <div style="display: flex; align-items: center">
-        <it-avatar
-          :src="proposal.student.avatar"
-          style="margin-right: 1rem"
-        ></it-avatar>
-        <span>{{ proposal.student.name }}</span>
-      </div>
-    </div>
-
-    <div v-if="proposal.supervisor">
-      <p>Supervisor</p>
-      <div style="display: flex; align-items: center">
-        <it-avatar
-          :src="proposal.supervisor.avatar"
-          style="margin-right: 1rem"
-        ></it-avatar>
-        <span>{{ proposal.supervisor.name }}</span>
-      </div>
-    </div>
-
-    <div>
-      <div>
-        <p>Evaluator</p>
-        <it-button
-          size="small"
-          v-if="$store.state.user.level >= 3 && !fullEvaluator"
-          @click="selectEvaluator()"
-          >assign</it-button
-        >
-      </div>
-      <div style="display: flex; margin-top: 1rem" v-if="proposal.evaluator">
-        <div
-          style="display: flex; align-items: center; margin-right: 1rem"
-          v-for="ev of proposal.evaluator"
-          :key="ev"
-        >
-          <it-avatar :src="ev.avatar" style="margin-right: 1rem"></it-avatar>
-          <span>{{ ev.name }}</span>
-          <it-button
-            v-if="ev.uid"
-            size="small"
-            type="danger"
-            @click="removeEv(ev)"
-            >remove</it-button
-          >
-        </div>
-      </div>
-    </div>
+    </div> -->
 
     <h3>Proposal Form</h3>
 
@@ -302,7 +324,7 @@
         <div
           style="
             width: 100%;
-            
+
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -316,26 +338,27 @@
       </template>
 
       <template #body>
+        <div style="height: 40vh; min-height: 250px">
+          <it-input
+            label-top="Proposal Name"
+            v-model="proposalEdit.title"
+          ></it-input>
 
-        <div style="height:40vh;min-height:250px;">
-        <it-input label-top="Proposal Name" v-model="proposalEdit.title"></it-input>
-        
-              <it-select
-        label-top="Project Type"
-        :options="[
-          { name: 'Research', key: 'research' },
-          { name: 'Development', key: 'development' },
-        ]"
-        track-by="key"
-        v-model="proposalEdit.type"
-      ></it-select>
+          <it-select
+            label-top="Project Type"
+            :options="[
+              { name: 'Research', key: 'research' },
+              { name: 'Development', key: 'development' },
+            ]"
+            track-by="key"
+            v-model="proposalEdit.type"
+          ></it-select>
         </div>
-        
-
-
       </template>
       <template #actions>
-        <it-button type="primary" @click="submitEditProposal()">Update</it-button>
+        <it-button type="primary" @click="submitEditProposal()"
+          >Update</it-button
+        >
       </template>
     </it-modal>
   </div>
@@ -373,17 +396,17 @@ export default {
       uploadFormModal: false,
       selectEvModal: false,
       addCommentModal: false,
-      editProposalModal:false,
+      editProposalModal: false,
       availableEv: [],
       postContent: "",
       isEvaluator: false,
-      fullEvaluator:false,
+      fullEvaluator: false,
       proposalStatusType: "",
       lastupdated: 0,
-      proposalEdit:{
-        title:'',
-        type:{}
-      }
+      proposalEdit: {
+        title: "",
+        type: {},
+      },
     };
   },
   mounted() {
@@ -445,7 +468,7 @@ export default {
             this.proposal.evaluator = [];
           }
 
-          if(this.proposal.evaluator.length == 2){
+          if (this.proposal.evaluator.length == 2) {
             this.fullEvaluator = true;
           }
 
@@ -459,17 +482,17 @@ export default {
 
           this.isEvaluator = false;
 
-          console.log(this.$store.state.user.uid,this.proposal.evaluator)
+          // console.log(this.$store.state.user.uid,this.proposal.evaluator)
 
-          this.proposal.evaluator.forEach( ev => {
-            if(ev.uid == this.$store.state.user.uid){
+          this.proposal.evaluator.forEach((ev) => {
+            if (ev.uid == this.$store.state.user.uid) {
               this.isEvaluator = true;
             }
-          })
+          });
 
           session1.close();
 
-          this.proposal = {...this.proposal}
+          this.proposal = { ...this.proposal };
 
           switch (this.proposal.status) {
             case 0:
@@ -610,7 +633,7 @@ export default {
           },
         })
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           this.att_upload_files = [];
           this.fetchFiles();
         });
@@ -641,7 +664,7 @@ export default {
           },
         })
         .then((data) => {
-          console.log(data);
+          // console.log(data);
           this.att_upload_files = [];
           this.fetchFiles();
         });
@@ -667,7 +690,7 @@ export default {
           result.records.forEach((data) => {
             let lect = data.get("u").properties;
             lect.avatar = `${endpoint}/media/avatar_${lect.uid}.png`;
-            console.log(lect.avatar);
+            // console.log(lect.avatar);
             delete lect["password"];
             this.availableEv.push(lect);
           });
@@ -798,7 +821,7 @@ export default {
             }
           )
           .then(() => {
-            window.location.reload()
+            window.location.reload();
           });
       }
     },
@@ -824,40 +847,43 @@ export default {
             // });
 
             // this.fetchProposal();
-            window.location.reload()
+            window.location.reload();
           });
       }
     },
 
-    editProposal(){
-      this.proposalEdit.title = this.proposal.title        
-      this.proposalEdit.type = this.proposal.type
+    editProposal() {
+      this.proposalEdit.title = this.proposal.title;
+      this.proposalEdit.type = this.proposal.type;
       this.editProposalModal = true;
     },
-    submitEditProposal(){
-
-      if(typeof(this.proposalEdit.type) == 'object'){
-        this.proposalEdit.type = this.proposalEdit.type.key
+    submitEditProposal() {
+      if (typeof this.proposalEdit.type == "object") {
+        this.proposalEdit.type = this.proposalEdit.type.key;
       }
 
       var session1 = driver.session();
-        
-        session1.run(`
+
+      session1
+        .run(
+          `
           MATCH (p:Proposal {uid:$p_uid})
           SET p.title = $p_title, p.type = $p_type
-        `,{
-          p_uid: this.proposal_uid,
-          p_title:this.proposalEdit.title,
-          p_type:this.proposalEdit.type,
-        }).then((result) => {
-          
+        `,
+          {
+            p_uid: this.proposal_uid,
+            p_title: this.proposalEdit.title,
+            p_type: this.proposalEdit.type,
+          }
+        )
+        .then((result) => {
           session1.close();
 
           this.editProposalModal = false;
 
           window.location.reload();
         });
-    }
+    },
   },
 };
 </script>
