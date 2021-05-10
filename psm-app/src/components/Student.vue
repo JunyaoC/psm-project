@@ -1,6 +1,6 @@
 <template>
   <div class="studentWrapper">
-    <h1>Welcome Back, {{ $store.state.user.name }}</h1>
+    <h1  v-if="!$store.state.user.proposal" >Welcome Back, {{ $store.state.user.name }}</h1>
 
     <div v-if="!$store.state.user.proposal" class="swipperWrapper">
 
@@ -134,7 +134,7 @@
   flex-direction: column;
   justify-content: space-around;
   align-items: flex-start;
-  padding: 1rem;
+  // padding: 1rem;
 }
 
 .slideDiv {

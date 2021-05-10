@@ -1,87 +1,247 @@
 <template>
-  <div style="height: 100%; width: 100%; padding: 1rem">
-
-    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-
-      <div style="padding:0.5rem;display:flex;align-items:center;">
-        
-
-
-        <div style="display: flex; align-items: center;width:100%;margin-bottom:1rem;">
-          <span style="font-size:2rem;font-weight:900;margin-right:2rem;">{{ proposal.title }}</span>
-            <div v-if="proposal.student">
-              <it-button
-                v-if="proposal.student.uid == $store.state.user.uid"
-                style="margin: 0 1rem"
-                size="small"
-                text
-                @click="editProposal()"
-                >edit</it-button
-              >
-            </div>
-            <it-tag style="margin-right: 1rem">{{ proposal.type }}</it-tag>
-            <it-tag>{{ proposal.status_text }}</it-tag>
-          </div>
-      </div>
-      
-    <div style="display:flex;background:white;padding:0.25rem 1rem;border-radius:0.5rem;box-shadow: rgba(100, 100, 111, 0.1) 0px 7px 29px 0px;">
-      <div v-if="proposal.student" style="display:flex; justify-content:flex-start;align-items:center;margin-right:1rem;">
-          <it-avatar
-          :src="proposal.student.avatar"
-          style="margin-right: 1rem"
-        ></it-avatar>
-        <div style="margin-bottom:0.5rem;">
-          <span style="font-size:0.8rem;font-weight:900;">student</span><br>
-          <span>{{ proposal.student.name }}</span>
-        </div>
-        </div>
-
-        <div v-if="proposal.supervisor" style="display:flex; justify-content:flex-start;align-items:center;margin-right:1rem;">
-          <it-avatar
-          :src="proposal.supervisor.avatar"
-          style="margin-right: 1rem"
-        ></it-avatar>
-        <div style="margin-bottom:0.5;">
-          <span style="font-size:0.8rem;font-weight:900;">supervisor</span><br>
-          <span>{{ proposal.supervisor.name }}</span>
-        </div>
-        </div>
-
-        <div v-for="ev of proposal.evaluator" :key="ev" style="display:flex; justify-content:flex-start;align-items:center;">
-          <it-avatar
-          :src="ev.avatar"
-          style="margin-right: 1rem"
-        ></it-avatar>
-        <div style="margin-bottom:0.5rem;">
-          <span style="font-size:0.8rem;font-weight:900;">evaluator</span><br>
-          <span>{{ ev.name }}</span>
-        </div>
-        </div>
-    </div>
-    </div>
-
-
+  <div
+    style="
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+    "
+  >
     <div
       style="
-        width: 100%;
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
+        align-items: center;
+        width: 100%;
+        background: #e8e8e8;
       "
     >
-      <div style="width: 350px;padding:1rem;">
+      <div style="padding: 0.5rem; display: flex; align-items: center">
+        <div style="display: flex; align-items: center; width: 100%">
+          <span style="font-size: 2rem; font-weight: 900; margin-right: 2rem">{{
+            proposal.title
+          }}</span>
+          <div v-if="proposal.student">
+            <it-button
+              v-if="proposal.student.uid == $store.state.user.uid"
+              style="margin: 0 1rem"
+              size="small"
+              text
+              @click="editProposal()"
+              >edit</it-button
+            >
+          </div>
+          <it-tag style="margin-right: 1rem">{{ proposal.type }}</it-tag>
+          <it-tag>{{ proposal.status_text }}</it-tag>
+        </div>
+      </div>
 
-        
+      <div style="display: flex; padding: 0.5rem">
+        <div
+          v-if="proposal.student"
+          style="
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-right: 1rem;
+          "
+        >
+          <it-avatar
+            :src="proposal.student.avatar"
+            style="margin-right: 1rem"
+          ></it-avatar>
+          <div style="margin-bottom: 0.5rem">
+            <span style="font-size: 0.8rem; font-weight: 900">student</span
+            ><br />
+            <span>{{ proposal.student.name }}</span>
+          </div>
+        </div>
 
-        
+        <div
+          v-if="proposal.supervisor"
+          style="
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-right: 1rem;
+          "
+        >
+          <it-avatar
+            :src="proposal.supervisor.avatar"
+            style="margin-right: 1rem"
+          ></it-avatar>
+          <div style="margin-bottom: 0.5">
+            <span style="font-size: 0.8rem; font-weight: 900">supervisor</span
+            ><br />
+            <span>{{ proposal.supervisor.name }}</span>
+          </div>
+        </div>
 
+        <div
+          v-for="ev of proposal.evaluator"
+          :key="ev"
+          style="
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+          "
+        >
+          <it-avatar :src="ev.avatar" style="margin-right: 1rem"></it-avatar>
+          <div style="margin-bottom: 0.5rem">
+            <span style="font-size: 0.8rem; font-weight: 900">evaluator</span
+            ><br />
+            <span>{{ ev.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="width: 100%; height: 100%; overflow-y: hidden">
+      <div
+        style="
+          width: 100%;
+          height:100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        "
+      >
+        <div style="width: 350px; padding: 0.5rem">
+          <div
+            style="
+              width: 100%;
+              background: white;
+              border-radius: 0.5rem;
+              padding: 0.5rem;
+            "
+          >
+            
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;">
+                <span style="font-size: 1.2rem; font-weight: 900;margin-right:10px;">Attachments</span>
+                <it-button @click="uploadAttModal = true" size="small" outlined round type="success">
+                  <it-icon name="add"></it-icon>
+                </it-button>
+              </div>
+              <it-button size="small" text>
+                <div style="display:flex;align-items:center;">
+                  <it-icon name="download" style="margin-top:5%;margin-right:10px;font-size:1.2rem;"></it-icon>
+                  <span>all</span>
+                </div>
+              </it-button>
+            </div>
+
+            <table style="table-layout: fixed; width: 100%;margin-top:1rem;">
+              <tr>
+                <td style="width:10%;">
+                  <RemixIcon
+                    class="iconElement"
+                    icon="file-word-2-fill"
+                    style="
+                      fill: rgba(10, 46, 166, 0.6);
+                      width: 1.5rem;
+                      margin-right: 0.5rem;
+                    "
+                  ></RemixIcon>
+                </td>
+                <td style="width:70%;">
+                  <span>Proposal Form</span>
+                </td>
+                <td style="display: flex;width:20%;justify-content:space-between;">
+                  <it-button size="small" type="primary" text @click="downloadFile('http://localhost:3000/proposal/' + proposal.uid + '/' + proposal.form_doc)"
+                    >
+                    <it-icon name="get_app"></it-icon>
+                    </it-button
+                  >
+                  <it-button size="small" type="warning" outlined @click="uploadFormModal = true">
+                    <it-icon name="refresh" style="color:#ff9345;"  ></it-icon>
+                  </it-button>
+                </td>
+              </tr>
+
+              <tr v-for="att in proposal.att_list" :key="att">
+                <td  style="width:10%;">
+                  <RemixIcon
+                    class="iconElement"
+                    icon="file-fill"
+                    style="
+                      fill: rgba(10, 46, 166, 0.6);
+                      width: 1.5rem;
+                      margin-right: 0.5rem;
+                    "
+                  ></RemixIcon>
+                </td>
+                <td
+                  style="
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    width:70%;
+                  "
+                >
+                  <span>{{ att }}</span>
+                </td>
+                <td style="display: flex;width:20%;justify-content:space-between;">
+                  <it-button size="small" type="primary" text @click="downloadFile('http://localhost:3000/proposal/' + proposal.uid + '/' + att)"
+                    >
+                    <it-icon name="get_app"></it-icon>
+                    </it-button
+                  >
+                  <it-button size="small" type="danger" outlined @click="removeFile(att)">
+                    <it-icon name="delete"></it-icon>
+                  </it-button>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div style="width:100%;height:100%;padding:0.5rem;background:#d9d5d0;overflow-y:scroll;scroll-behavior: smooth;" id="chatContainer">
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+              <div style="display:flex;">
+                <span style="font-size: 1.4rem; font-weight: 900;margin-right:10px;">Comments</span>
+              </div>
+              <it-button size="small" @click="addCommentModal = true">
+                <div style="display:flex;align-items:center;">
+                  <it-icon name="add" style="margin-right:10px;font-size:1.2rem;"></it-icon>
+                  <span>post comment</span>
+                </div>
+              </it-button>
+            </div>
+
+          <div v-for="comment of proposal.comment" :key="comment">
+            
+            <div class="chatDiv" :class="{ self: (comment.author.uid == $store.state.user.uid)}">
+              <div class="chatContent">
+                <div class="chatHeader">
+                  <it-avatar :src="comment.author.avatar"></it-avatar>
+                  <div>
+                    <span class="headerText">{{comment.author.name}}</span>
+                  </div>
+                </div>
+                <div class="chatBody">
+                  <div v-html="comment.content"></div>
+                </div>
+
+                <div style="display:flex;background:#f0f0f0;border-radius:0 0 10px 10px;padding:5px;align-items:center;justify-content:space-between;">
+                  <span style="font-size:0.8rem;color:rgba(0,0,0,0.5);">{{comment.timestampParsed}}</span>
+                    <it-button v-if="comment.author.uid == $store.state.user.uid" type="danger" text size="small" @click="removeComment(comment)" >delete</it-button>
+                </div>
+                
+              </div>
+            </div>
+
+            
+          </div>
+
+
+        </div>
 
       </div>
 
-      <div style="width: 100%"></div>
-    </div>
-
-    <!-- <div v-if="proposal.status <= 2" style="display: flex; align-items: center">
+      <!-- <div v-if="proposal.status <= 2" style="display: flex; align-items: center">
       <span style="margin-right: 1rem"
         >Pending Evaluator Assessment Submission</span
       >
@@ -116,251 +276,206 @@
       </it-button-group>
     </div> -->
 
-    <h3>Proposal Form</h3>
+      <!-- <h3>Proposal Form</h3> -->
 
-    <table>
-      <tr>
-        <th>{{ proposal.form_doc }}</th>
-        <td>
-          <it-button size="small" @click="uploadFormModal = true"
-            >reupload</it-button
-          >
-        </td>
-        <td>
-          <a
-            :href="
-              'http://localhost:3000/proposal/' +
-              proposal.uid +
-              '/' +
-              proposal.form_doc
+      <!-- <div>
+        <h3>Comments</h3>
+        <it-button @click="addCommentModal = true">add comments</it-button>
+      </div> -->
+
+      <!-- <div v-for="comment of proposal.comment" :key="comment">
+        <div v-html="comment.content"></div>
+        <p>Posted by {{ comment.author.name }}</p>
+        <it-button
+          v-if="$store.state.user.uid == comment.author.uid"
+          type="danger"
+          @click="removeComment(comment)"
+          >remove</it-button
+        >
+      </div> -->
+
+      <it-modal v-model="uploadAttModal">
+        <template #header>
+          <div
+            style="
+              width: 100%;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
             "
-            target="_blank"
           >
-            <it-button type="primary" size="small">download</it-button>
-          </a>
-        </td>
-      </tr>
-    </table>
-
-    <div style="display: flex; align-items: center">
-      <h3 style="margin-right: 1rem">Attachments</h3>
-      <it-button @click="uploadAttModal = true">Upload</it-button>
-    </div>
-
-    <table>
-      <tr v-for="att in proposal.att_list" :key="att">
-        <th>{{ att }}</th>
-        <td>
-          <it-button size="small" type="danger" @click="removeFile(att)"
-            >remove</it-button
-          >
-        </td>
-        <td>
-          <a
-            :href="'http://localhost:3000/proposal/' + proposal.uid + '/' + att"
-            target="_blank"
-          >
-            <it-button type="primary" size="small">download</it-button>
-          </a>
-        </td>
-      </tr>
-    </table>
-
-    <div>
-      <h3>Comments</h3>
-      <it-button @click="addCommentModal = true">add comments</it-button>
-    </div>
-
-    <div v-for="comment of proposal.comment" :key="comment">
-      <div v-html="comment.content"></div>
-      <p>Posted by {{ comment.author.name }}</p>
-      <it-button
-        v-if="$store.state.user.uid == comment.author.uid"
-        type="danger"
-        @click="removeComment(comment)"
-        >remove</it-button
-      >
-    </div>
-
-    <it-modal v-model="uploadAttModal">
-      <template #header>
-        <div
-          style="
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <h3 style="margin: 0">Upload Attachments</h3>
-          <it-button type="danger" @click="uploadAttModal = false"
-            >Cancel</it-button
-          >
-        </div>
-      </template>
-
-      <template #body>
-        <input type="file" multiple @change="selectAttachment" />
-
-        <h4>Files:</h4>
-        <ol>
-          <li v-for="file in att_upload_files" :key="file">
-            {{ file.filename }}
-          </li>
-        </ol>
-      </template>
-      <template #actions>
-        <it-button type="primary" @click="uploadAttachment()">Upload</it-button>
-      </template>
-    </it-modal>
-
-    <it-modal v-model="uploadFormModal">
-      <template #header>
-        <div
-          style="
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <h3 style="margin: 0">Reupload Proposal Form</h3>
-          <it-button type="danger" @click="uploadFormModal = false"
-            >Cancel</it-button
-          >
-        </div>
-      </template>
-
-      <template #body>
-        <input type="file" @change="selectForm" />
-
-        <h4>New Proposal Form</h4>
-        <p v-if="form_upload_file">{{ form_upload_file.name }}</p>
-      </template>
-      <template #actions>
-        <it-button type="primary" @click="reuploadForm()">Upload</it-button>
-      </template>
-    </it-modal>
-
-    <it-modal width="600px" v-model="selectEvModal">
-      <div class="modalWrapper">
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <span class="modal__title">Assign Evaluator</span>
-          <it-button type="danger" @click="selectEvModal = false"
-            >close</it-button
-          >
-        </div>
-
-        <table style="width: 100%; margin-top: 1rem">
-          <tr>
-            <th colspan="2">Name</th>
-            <th>Domain</th>
-            <th>Action</th>
-          </tr>
-
-          <tr v-for="lect in availableEv" :key="lect">
-            <td>
-              <it-avatar :src="lect.avatar"></it-avatar>
-            </td>
-            <td>{{ lect.name }}</td>
-            <td style="text-align: center">{{ lect.domain }}</td>
-            <td style="display: flex; justify-content: center">
-              <it-button @click="assignEv(lect)">Assign</it-button>
-            </td>
-          </tr>
-        </table>
-      </div>
-    </it-modal>
-
-    <it-modal width="600px" v-model="addCommentModal">
-      <div class="modalWrapper">
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <span class="modal__title">Add Comment</span>
-          <it-button type="danger" @click="addCommentModal = false"
-            >close</it-button
-          >
-        </div>
-        <Tiptap @update="postContentUpdate($event)"></Tiptap>
-        <div
-          style="
-            width: 100%;
-            padding: 10px;
-            border-radius: 1rem;
-            background: rgba(233, 233, 233, 1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 1rem;
-          "
-        >
-          <div style="display: flex; align-items: center">
-            <it-avatar
-              style="margin-right: 1rem"
-              :src="$store.state.user.avatar"
-            ></it-avatar>
-            <h4>{{ $store.state.user.name }}</h4>
+            <h3 style="margin: 0">Upload Attachments</h3>
+            <it-button type="danger" @click="uploadAttModal = false"
+              >Cancel</it-button
+            >
           </div>
-          <it-button type="primary" @click="postComment()"
-            >Post Comment</it-button
+        </template>
+
+        <template #body>
+          <input type="file" multiple @change="selectAttachment" />
+
+          <h4>Files:</h4>
+          <ol>
+            <li v-for="file in att_upload_files" :key="file">
+              {{ file.filename }}
+            </li>
+          </ol>
+        </template>
+        <template #actions>
+          <it-button type="primary" @click="uploadAttachment()"
+            >Upload</it-button
           >
-        </div>
-      </div>
-    </it-modal>
+        </template>
+      </it-modal>
 
-    <it-modal v-model="editProposalModal">
-      <template #header>
-        <div
-          style="
-            width: 100%;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          "
-        >
-          <h3 style="margin: 0">Edit Proposal</h3>
-          <it-button type="danger" @click="editProposalModal = false"
-            >Cancel</it-button
+      <it-modal v-model="uploadFormModal">
+        <template #header>
+          <div
+            style="
+              width: 100%;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
           >
-        </div>
-      </template>
+            <h3 style="margin: 0">Reupload Proposal Form</h3>
+            <it-button type="danger" @click="uploadFormModal = false"
+              >Cancel</it-button
+            >
+          </div>
+        </template>
 
-      <template #body>
-        <div style="height: 40vh; min-height: 250px">
-          <it-input
-            label-top="Proposal Name"
-            v-model="proposalEdit.title"
-          ></it-input>
+        <template #body>
+          <input type="file" @change="selectForm" />
 
-          <it-select
-            label-top="Project Type"
-            :options="[
-              { name: 'Research', key: 'research' },
-              { name: 'Development', key: 'development' },
-            ]"
-            track-by="key"
-            v-model="proposalEdit.type"
-          ></it-select>
+          <h4>New Proposal Form</h4>
+          <p v-if="form_upload_file">{{ form_upload_file.name }}</p>
+        </template>
+        <template #actions>
+          <it-button type="primary" @click="reuploadForm()">Upload</it-button>
+        </template>
+      </it-modal>
+
+      <it-modal width="600px" v-model="selectEvModal">
+        <div class="modalWrapper">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <span class="modal__title">Assign Evaluator</span>
+            <it-button type="danger" @click="selectEvModal = false"
+              >close</it-button
+            >
+          </div>
+
+          <table style="width: 100%; margin-top: 1rem">
+            <tr>
+              <th colspan="2">Name</th>
+              <th>Domain</th>
+              <th>Action</th>
+            </tr>
+
+            <tr v-for="lect in availableEv" :key="lect">
+              <td>
+                <it-avatar :src="lect.avatar"></it-avatar>
+              </td>
+              <td>{{ lect.name }}</td>
+              <td style="text-align: center">{{ lect.domain }}</td>
+              <td style="display: flex; justify-content: center">
+                <it-button @click="assignEv(lect)">Assign</it-button>
+              </td>
+            </tr>
+          </table>
         </div>
-      </template>
-      <template #actions>
-        <it-button type="primary" @click="submitEditProposal()"
-          >Update</it-button
-        >
-      </template>
-    </it-modal>
+      </it-modal>
+
+      <it-modal width="600px" v-model="addCommentModal">
+        <div class="modalWrapper">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <span class="modal__title">Add Comment</span>
+            <it-button type="danger" @click="addCommentModal = false"
+              >close</it-button
+            >
+          </div>
+          <Tiptap @update="postContentUpdate($event)"></Tiptap>
+          <div
+            style="
+              width: 100%;
+              padding: 10px;
+              border-radius: 1rem;
+              background: rgba(233, 233, 233, 1);
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-top: 1rem;
+            "
+          >
+            <div style="display: flex; align-items: center">
+              <it-avatar
+                style="margin-right: 1rem"
+                :src="$store.state.user.avatar"
+              ></it-avatar>
+              <h4>{{ $store.state.user.name }}</h4>
+            </div>
+            <it-button type="primary" @click="postComment()"
+              >Post Comment</it-button
+            >
+          </div>
+        </div>
+      </it-modal>
+
+      <it-modal v-model="editProposalModal">
+        <template #header>
+          <div
+            style="
+              width: 100%;
+
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <h3 style="margin: 0">Edit Proposal</h3>
+            <it-button type="danger" @click="editProposalModal = false"
+              >Cancel</it-button
+            >
+          </div>
+        </template>
+
+        <template #body>
+          <div style="height: 40vh; min-height: 250px">
+            <it-input
+              label-top="Proposal Name"
+              v-model="proposalEdit.title"
+            ></it-input>
+
+            <it-select
+              label-top="Project Type"
+              :options="[
+                { name: 'Research', key: 'research' },
+                { name: 'Development', key: 'development' },
+              ]"
+              track-by="key"
+              v-model="proposalEdit.type"
+            ></it-select>
+          </div>
+        </template>
+        <template #actions>
+          <it-button type="primary" @click="submitEditProposal()"
+            >Update</it-button
+          >
+        </template>
+      </it-modal>
+    </div>
   </div>
 </template>
 
@@ -370,6 +485,80 @@
   max-width: 80vw;
   padding: 1rem;
 }
+
+.chatDiv{
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+
+  .chatContent{
+    min-width: 20%;
+    max-width: 400px;
+    text-align: left;
+    background:white;
+    border-radius: 10px;
+
+    .chatHeader{
+
+      background:rgb(240, 240, 240);
+      padding: 10px;
+      border-radius: 10px 10px 0 0;
+
+      .headerText {
+        margin:0 10px;
+      }
+
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .chatBody{
+      padding: 10px;
+    }
+
+  }
+
+
+}
+
+.chatDiv.self{
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+
+  .chatContent{
+    max-width: 400px;
+    text-align: left;
+    background:white;
+    border-radius: 10px;
+
+    .chatHeader{
+      padding: 10px;
+      border-radius: 10px 10px 0 0;
+
+      .headerText {
+        margin:0 10px;
+      }
+
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: center;
+    }
+
+    .chatBody{
+      padding: 10px;
+    }
+    
+    
+  }
+
+}
+
+
+
 </style>
 
 <script>
@@ -378,6 +567,7 @@ import driver from "../neo4j.js";
 const endpoint = "http://localhost:3000";
 
 import Tiptap from "@/components/Tiptap.vue";
+import RemixIcon from "@/components/RemixIcon.vue";
 import moment from "moment";
 import { uid } from "uid";
 
@@ -386,6 +576,7 @@ export default {
   props: ["proposal_uid"],
   components: {
     Tiptap,
+    RemixIcon,
   },
   data() {
     return {
@@ -538,6 +729,9 @@ export default {
                   delete _a["password"];
 
                   _c["author"] = _a;
+                  _c["timestamp"] = Number(_c["timestamp"])
+                  _c["timestampParsed"] = moment(Number(_c["timestamp"])).format("hh:mm A Do MMM YY")
+                  _c["author"]["avatar"] = `${endpoint}/media/avatar_${_c["author"].uid}.png`;
 
                   comments.set(_c.uid, _c);
 
@@ -552,7 +746,13 @@ export default {
             commentArr.push({ ...val });
           });
 
+          console.log(commentArr)
+
+          commentArr.sort( (a,b) => (a.timestamp > b.timestamp) ? 1 : -1);
+
           this.proposal["comment"] = commentArr;
+
+          this.jumpToLatest();
 
           session2.close();
         });
@@ -884,6 +1084,16 @@ export default {
           window.location.reload();
         });
     },
+    downloadFile(link){
+      window.open(link,'_blank')
+    },
+    jumpToLatest(){
+      setTimeout(() => {
+        var container = this.$el.querySelector("#chatContainer");
+        container.scrollTop = container.scrollHeight;
+        console.log(this.proposal.comment)
+      }, 500)
+    }
   },
 };
 </script>

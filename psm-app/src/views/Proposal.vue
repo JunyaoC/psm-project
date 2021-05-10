@@ -156,7 +156,7 @@
           </table>
         </div>
 
-        <div
+        <!-- <div
           style="
             display: flex;
             justify-content: flex-start;
@@ -168,7 +168,7 @@
             >{{ proposal.commentCount }}
             {{ proposal.commentCount > 1 ? "Comments" : "Comment" }}</span
           >
-        </div>
+        </div> -->
 
         <div
           style="
@@ -285,7 +285,7 @@ export default {
       if (this.$store.state.user.level == 3) {
         session
           .run(
-            "MATCH p = (:Proposal)-[*1..1]-(), p2 = (:Proposal)<-[:PROPOSAL_OWNER]-()-[:STUDENT_OF]->(:Session),(:Proposal)-[]-(comment:Comment) RETURN p, p2,count(comment)",
+            "MATCH p = (:Proposal)-[*1..1]-(), p2 = (:Proposal)<-[:PROPOSAL_OWNER]-()-[:STUDENT_OF]->(:Session) RETURN p, p2",
             {
               uid: this.$store.state.user.uid,
             }
@@ -301,11 +301,6 @@ export default {
               } else {
                 proposalObj = { ...path.start.properties };
               }
-
-              if (!proposalObj.commentCount) {
-                proposalObj.commentCount = data.get("count(comment)");
-              }
-
               path.segments.forEach((segment) => {
                 if (segment.relationship.type == "SUPERVISES") {
                   proposalObj["supervisor"] = segment.end.properties;
@@ -392,7 +387,7 @@ export default {
       if (this.$store.state.user.level == 2) {
         session
           .run(
-            "MATCH (u:User {uid:$uid})-[]-(proposal:Proposal), p = (proposal)-[*1..1]-(), p2 = (proposal:Proposal)<-[:PROPOSAL_OWNER]-()-[:STUDENT_OF]->(:Session), (proposal:Proposal)-[]-(comment:Comment) return p,p2,count(comment)",
+            "MATCH self_p = (u:User {uid:$uid})-[]-(proposal:Proposal), p = (proposal)-[*1..1]-(), p2 = (proposal:Proposal)<-[:PROPOSAL_OWNER]-()-[:STUDENT_OF]->(:Session), return self_p,p,p2",
             {
               uid: this.$store.state.user.uid,
             }
@@ -403,8 +398,6 @@ export default {
             result.records.forEach((data) => {
               let path = data.get("p");
 
-              console.log(data.get("count(comment)"), "XX");
-
               if (proposalMap.has(path.start.properties.uid)) {
                 proposalObj = proposalMap.get(path.start.properties.uid);
               } else {
@@ -412,6 +405,7 @@ export default {
               }
 
               path.segments.forEach((segment) => {
+
                 if (segment.relationship.type == "SUPERVISES") {
                   proposalObj["supervisor"] = segment.end.properties;
                   delete proposalObj["supervisor"]["password"];
@@ -427,6 +421,29 @@ export default {
                   delete proposalObj["owner"]["password"];
                   proposalObj.owner.avatar = `${endpoint}/media/avatar_${proposalObj.owner.uid}.png`;
                 }
+
+                if (segment.relationship.type == "EVALUATES") {                 
+
+                  if (!proposalObj.evaluator) {
+                    proposalObj.evaluator = [];
+                  }
+
+                  let evExist = false;
+
+                  for (let ev of proposalObj.evaluator) {
+                    if (ev.uid == segment.end.properties.uid) {
+                      evExist = true;
+                    }
+                  }
+
+                  if (!evExist) {
+                    let evObj = segment.end.properties;
+                    delete evObj["password"];
+                    evObj.avatar = `${endpoint}/media/avatar_${evObj.uid}.png`;
+                    proposalObj.evaluator.push(evObj);
+                  }
+                }
+                
               });
 
               data.get("p2").segments.forEach((segment) => {
@@ -440,6 +457,43 @@ export default {
                   proposalObj.owner.avatar = `${endpoint}/media/avatar_${proposalObj.owner.uid}.png`;
                 }
               });
+
+              let self_p = data.get("self_p");
+
+              self_p.segments.forEach((segment) => {
+
+                if (segment.relationship.type == "SUPERVISES") {
+                  proposalObj["supervisor"] = segment.start.properties;
+                  delete proposalObj["supervisor"]["password"];
+                  proposalObj.supervisor.avatar = `${endpoint}/media/avatar_${proposalObj.supervisor.uid}.png`;
+                }
+
+                if (segment.relationship.type == "EVALUATES") {                 
+
+                  if (!proposalObj.evaluator) {
+                    proposalObj.evaluator = [];
+                  }
+
+                  let evExist = false;
+
+                  for (let ev of proposalObj.evaluator) {
+                    if (ev.uid == segment.start.properties.uid) {
+                      evExist = true;
+                    }
+                  }
+
+                  if (!evExist) {
+                    let evObj = segment.start.properties;
+                    delete evObj["password"];
+                    evObj.avatar = `${endpoint}/media/avatar_${evObj.uid}.png`;
+                    proposalObj.evaluator.push(evObj);
+                  }
+                }
+
+
+              });
+
+
 
               proposalMap.set(path.start.properties.uid, proposalObj);
             });
