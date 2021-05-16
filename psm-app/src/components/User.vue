@@ -21,7 +21,7 @@
             <th>Subject</th>
             <th>E-Mail</th>
             <th style="text-align: left">Action</th>
-            <th style="text-align: center">Supervise</th>
+            <th style="text-align: center" v-if="$store.state.user.level == 3">Supervise</th>
           </tr>
 
           <tr class="dataRow" v-for="lecturer in lecturers" :key="lecturer">
@@ -30,30 +30,28 @@
             <td>{{ lecturer.subject.name }}</td>
             <td>{{ lecturer.email }}</td>
             <td>
-              <it-button @click="openForm('edit', lecturer)" size="small"
-                >edit</it-button
-              >
+              <it-button @click="openForm('edit', lecturer)" size="small" >edit</it-button >
             </td>
-            <td>
+            <td v-if="$store.state.user.level == 3">
                 <ol>
-<li v-for="sv of lecturer.supervise" :key="sv" style="margin-bottom:5px;">
-                  <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                    
-                    <span style="margin: 0 1rem">{{ sv.student.name }}</span>
-                    
-                  </div>
-                  <it-button v-if="sv.status == 'pending'" size="small" @click="reivewSVRequest(lecturer, sv)" type="primary" >Review Request</it-button >
-                  <it-button v-if="sv.status != 'pending'" size="small" @click="reivewSVRequest(lecturer, sv)" >View</it-button >
-                  </div>
-                </li>    
+                  <li v-for="sv of lecturer.supervise" :key="sv" style="margin-bottom:5px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <div>
+                      
+                      <span style="margin: 0 1rem">{{ sv.student.name }}</span>
+                      
+                    </div>
+                    <it-button v-if="sv.status == 'pending'" size="small" @click="reivewSVRequest(lecturer, sv)" type="primary" >Review Request</it-button >
+                    <it-button v-if="sv.status != 'pending'" size="small" @click="reivewSVRequest(lecturer, sv)" >View</it-button >
+                    </div>
+                  </li>    
                 </ol>
                           
             </td>
           </tr>
         </table>
       </it-tab>
-      <it-tab title="Student" style="padding: 1rem">
+      <it-tab title="Student" style="padding: 1rem" v-if="$store.state.user.level == 3">
         <table style="width: 100%; text-align: left">
           <tr>
             <th>Name</th>
@@ -61,19 +59,23 @@
             <th>Major</th>
             <th>E-Mail</th>
             <th>Semester</th>
+            <th>Action</th>
           </tr>
 
           <tr
             class="dataRow"
             v-for="student in students"
             :key="student"
-            @click="openForm('edit', student)"
+            
           >
             <td>{{ student.name }}</td>
             <td>{{ student.matric }}</td>
             <td>{{ student.subject.name }}</td>
             <td>{{ student.email }}</td>
             <td>{{ student.semester}}</td>
+            <td>
+              <it-button @click="openForm('edit', student)" size="small" >edit</it-button >
+            </td>
           </tr>
         </table>
       </it-tab>
@@ -166,7 +168,7 @@
       </div>
 
       <div style="display: flex; justify-content: space-between; width: 100%">
-                <div>
+        <div>
           <p>User Type</p>
           <div
             style="
@@ -177,8 +179,10 @@
             "
           >
             <it-select
+              :disabled="true"
               v-model="formData.user_type"
               :options="['Student', 'Lecturer']"
+              @click="updatePrefill()"
             />
           </div>
         </div>
@@ -199,6 +203,7 @@
           >
             <it-select
               v-model="formData.user_subject"
+              :disabled="$store.state.user.level !=4 && formData.user_type == 'Lecturer'"
               :options="subjects"
               track-by="name"
             />
@@ -217,8 +222,9 @@
             "
           >
             <it-select
+              :disabled="$store.state.user.level != 3"
               v-model="formData.user_domain"
-              :options="['Research', 'Development']"
+              :options="['To Be Assigned','Research', 'Development']"
             />
           </div>
         </div>
@@ -266,16 +272,16 @@
         <it-switch v-model="formData.user_committee" label="PSM Committee" />
       </div>
 
-      <h3>Login Credentials</h3>
-      <it-input label-top="Email" v-model="formData.user_email" />
+      <h3 v-if="$store.state.user.level == 4 && formData.user_type == 'Lecturer'" >Login Credentials</h3>
+      <it-input :disabled="$store.state.user.level !=4 && formData.user_type == 'Lecturer'" label-top="Email" v-model="formData.user_email" />
       <it-input
-        v-if="operation == 'create'"
+        v-if="operation == 'create' && $store.state.user.level == 4 && formData.user_type == 'Lecturer'"
         label-top="Password"
         v-model="formData.user_password"
       />
       <it-button
         style="margin-top: 1rem"
-        v-if="operation == 'edit'"
+        v-if="operation == 'edit' && $store.state.user.level == 4 && formData.user_type == 'Lecturer' "
         @click="changePassword()"
         >Change Password</it-button
       >
@@ -290,10 +296,10 @@
         "
       >
         <it-avatar size="70px" :src="formData.user_avatar_src" />
-        <input type="file" @change="selectAvatar" />
+        <input type="file" @change="selectAvatar" v-if="($store.state.user.level == 4 && formData.user_type == 'Lecturer') || formData.user_type == 'Student'" />
       </div>
-      <it-input label-top="Name" v-model="formData.user_name" />
-      <it-input label-top="Contact" v-model="formData.user_contact" />
+      <it-input label-top="Name" :disabled="$store.state.user.level !=4 && formData.user_type == 'Lecturer'" v-model="formData.user_name" />
+      <it-input label-top="Contact" :disabled="$store.state.user.level !=4 && formData.user_type == 'Lecturer'" v-model="formData.user_contact" />
       <it-input
         v-if="formData.user_type == 'Student'"
         label-top="Matric Number"
@@ -602,7 +608,7 @@ export default {
           /// reset the form
 
           this.formData = {
-            user_type: "Student",
+            user_type: "",
             user_email: "",
             user_name: "",
             user_password: "",
@@ -615,6 +621,15 @@ export default {
             user_matric: "",
             user_semester: ""
           };
+
+          if(this.$store.state.user.level == 4){
+            this.formData.user_type = 'Lecturer'
+            this.formData.user_domain = 'To Be Assigned'
+          }
+
+          if(this.$store.state.user.level == 3){
+            this.formData.user_type = 'Student'
+          }
 
           break;
 
@@ -715,6 +730,19 @@ export default {
             session.close();
             this.fetchUser();
           });
+      }
+    },
+
+    updatePrefill(){
+      console.log(this.formData.user_type)
+      switch(this.formData.user_type){
+        case 'Student':
+          break;
+        case 'Lecturer':
+          if(!this.formData.user_domain){
+            this.formData.user_domain = "To Be Assigned"
+          }          
+          break;
       }
     },
 
@@ -949,11 +977,6 @@ export default {
           switch (this.formData.user_type) {
             case "Student":
               session
-                .run(`MATCH (u:User {uid:$uid})-[r]-() DELETE r `, {
-                  uid: this.payload.uid,
-                })
-                .then(() => {
-                  session
                     .run(
                       `MATCH (u:User {
                       uid:$uid
@@ -964,9 +987,6 @@ export default {
                       u.contact =  $contact,
                       u.matric =  $matric,
                       u.semester = $semester
-
-                      REMOVE u.domain
-
                       RETURN u
                   `,
                       {
@@ -1003,7 +1023,6 @@ export default {
                           });
                         });
                     });
-                });
 
               break;
 
@@ -1030,11 +1049,6 @@ export default {
               }
 
               session
-                .run(`MATCH (u:User {uid:$uid})-[r]-() DELETE r `, {
-                  uid: this.payload.uid,
-                })
-                .then(() => {
-                  session
                     .run(
                       `MATCH (u:User {
                       uid:$uid
@@ -1074,7 +1088,6 @@ export default {
                           });
                         });
                     });
-                });
               break;
           }
 

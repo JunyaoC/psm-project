@@ -2,29 +2,50 @@
   <div class="wrapper">
     <div class="left-pane">
       <div>
-        <it-button outlined text>
-          <it-icon name="notifications" style="font-size: 1.2rem" />
-        </it-button>
+
       </div>
       <div>
-        <router-link to="/user">
-          <it-button outlined text>
-            <it-icon name="person_add" style="font-size: 1.2rem" />
-          </it-button>
+        <div>
+          <router-link to="/user">
+          <it-tooltip placement="right">
+            <template v-slot:content>
+              <it-tag style="margin-bottom:0.5rem;">Users </it-tag><br>
+              <span>Manage Lecturers and Students</span>
+            </template>
+            <it-button outlined text>
+              <it-icon name="person_add" style="font-size: 1.2rem" />
+            </it-button>
+          </it-tooltip>
         </router-link>
+        </div>
 
-        <router-link to="/program">
-          <it-button outlined text>
-            <it-icon name="school" style="font-size: 1.2rem" />
-          </it-button>
+        <div v-if="$store.state.user.level == 4">
+          <router-link to="/program">
+          <it-tooltip placement="right">
+            <template v-slot:content>
+              <it-tag style="margin-bottom:0.5rem;">Academic Program </it-tag><br>
+              <span>Manage Academic Sessions and Subjects</span>
+            </template>
+            <it-button outlined text>
+              <it-icon name="school" style="font-size: 1.2rem" />
+            </it-button>
+          </it-tooltip>
         </router-link>
+        </div>
 
-        <router-link to="/proposal">
-          <it-button outlined text>
-            <it-icon name="description" style="font-size: 1.2rem" />
-          </it-button>
+        <div>
+          <router-link to="/proposal">
+          <it-tooltip placement="right">
+            <template v-slot:content>
+              <it-tag style="margin-bottom:0.5rem;">Proposal</it-tag><br>
+              <span>Manage Student Proposals</span>
+            </template>
+            <it-button outlined text>
+              <it-icon name="description" style="font-size: 1.2rem" />
+            </it-button>
+          </it-tooltip>
         </router-link>
-
+        </div>
       </div>
 
       <div
@@ -35,7 +56,21 @@
           flex-direction: column;
         "
       >
-        <it-avatar :src="avatar" style="margin-bottom: 1rem;: " />
+        
+
+        <it-tooltip placement="right">
+          <template v-slot:content>
+            <div>
+              <span style="margin-right:0.5rem;">{{$store.state.user.name}}</span>
+              <it-tag v-if="$store.state.user.level == 4" type="black" filled>Admin</it-tag>
+              <it-tag v-if="$store.state.user.level == 3" type="primary" filled>PSM Lecturer</it-tag>
+              <it-tag v-if="$store.state.user.level == 2" type="sucess" filled>Lecturer</it-tag>
+              <it-tag v-if="$store.state.user.level == 1">Student</it-tag>
+            </div>
+            <span>Email: {{$store.state.user.email}}</span>
+          </template>
+          <it-avatar :src="avatar" style="margin-bottom: 1rem;: " />
+        </it-tooltip>
         <it-button outlined text @click="performLogout()">
           <it-icon name="logout" style="font-size: 1.2rem; color: #ff5454" />
         </it-button>
