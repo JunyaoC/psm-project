@@ -50,7 +50,7 @@
 
 <script>
 
-  const endpoint = "http://localhost:3000"
+  const endpoint = "http://185.185.40.33:3000"
   import driver from "../neo4j.js";
   import { uid } from "uid";
   import axios from 'axios';
