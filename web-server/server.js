@@ -1,4 +1,6 @@
+
 var express = require('express');
+var cors = require('cors');
 var https = require('https');
 var http = require('http');
 var fs = require('fs');
@@ -11,7 +13,8 @@ var options = {
 
 // Create a service (the app object is just a callback).
 var app = express();
-app.use(express.static('../psm-app/dist'))
+app.use(express.static('dist'))
+app.use(cors())
 
 // Create an HTTP service.
 http.createServer(app).listen(80);
