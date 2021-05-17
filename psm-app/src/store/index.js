@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import createPersistedState from "vuex-persistedstate";
 
-const endpoint = "http://185.185.40.33:3000"
+const endpoint = "http://localhost:3000"
 
 export default createStore({
   state: {

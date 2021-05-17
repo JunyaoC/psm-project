@@ -97,7 +97,7 @@
 // @ is an alias to /src
 
 import router from "../router";
-const endpoint = "http://185.185.40.33:3000";
+const endpoint = "http://localhost:3000";
 
 export default {
   name: "Home",
