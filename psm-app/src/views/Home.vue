@@ -97,7 +97,8 @@
 // @ is an alias to /src
 
 import router from "../router";
-const endpoint = "http://185.185.40.33:3000";
+// const endpoint = "http://185.185.40.33:3000";
+import endpoint from "@/endpoint.js";
 
 export default {
   name: "Home",
@@ -106,7 +107,7 @@ export default {
   },
   data() {
     return {
-      avatar: `${endpoint}/media/avatar_${this.$store.state.user.uid}.png`,
+      avatar: `${endpoint.storage}/media/avatar_${this.$store.state.user.uid}.png`,
     };
   },
   mounted() {

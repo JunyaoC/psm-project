@@ -39,10 +39,6 @@
 import router from '../router'
   import driver from '../neo4j.js'
   import { sha256 } from 'js-sha256';
-
-  // import blockchain from '../web3.js';
-
-  // const endpoint = "http://localhost:3000"
   
   export default {
     name: 'Login',

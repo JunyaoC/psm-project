@@ -50,7 +50,7 @@
 
 <script>
 
-  const endpoint = "http://185.185.40.33:3000"
+  import endpoint from "@/endpoint.js";
   import driver from "../neo4j.js";
   import { uid } from "uid";
   import axios from 'axios';
@@ -69,7 +69,7 @@
     },
     methods:{
       downloadForm(){
-        window.open(`${endpoint}/media/form/form.doc`,'_blank')
+        window.open(`${endpoint.storage}/media/form/form.doc`,'_blank')
       },
 
       selectForm(event){
@@ -127,7 +127,7 @@
           }
 
           axios
-            .post(`${endpoint}/api/proposal_upload`, formData, {
+            .post(`${endpoint.storage}/api/proposal_upload`, formData, {
               headers: {
                 "Content-Type": "multipart/form-data",
               },

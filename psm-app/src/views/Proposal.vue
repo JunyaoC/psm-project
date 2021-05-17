@@ -261,7 +261,8 @@
 
 <script>
 import driver from "../neo4j.js";
-const endpoint = "http://185.185.40.33:3000";
+// const endpoint = "http://185.185.40.33:3000";
+import endpoint from "@/endpoint.js";
 
 export default {
   name: "ProposalList",
@@ -305,7 +306,7 @@ export default {
                 if (segment.relationship.type == "SUPERVISES") {
                   proposalObj["supervisor"] = segment.end.properties;
                   delete proposalObj["supervisor"]["password"];
-                  proposalObj.supervisor.avatar = `${endpoint}/media/avatar_${proposalObj.supervisor.uid}.png`;
+                  proposalObj.supervisor.avatar = `${endpoint.storage}/media/avatar_${proposalObj.supervisor.uid}.png`;
                 }
 
                 if (segment.relationship.type == "EVALUATES") {
@@ -324,7 +325,7 @@ export default {
                   if (!evExist) {
                     let evObj = segment.end.properties;
                     delete evObj["password"];
-                    evObj.avatar = `${endpoint}/media/avatar_${evObj.uid}.png`;
+                    evObj.avatar = `${endpoint.storage}/media/avatar_${evObj.uid}.png`;
                     proposalObj.evaluator.push(evObj);
                   }
                 }
@@ -336,7 +337,7 @@ export default {
                 if (segment.relationship.type == "PROPOSAL_OWNER") {
                   proposalObj["owner"] = segment.end.properties;
                   delete proposalObj["owner"]["password"];
-                  proposalObj.owner.avatar = `${endpoint}/media/avatar_${proposalObj.owner.uid}.png`;
+                  proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
                 }
               });
 
@@ -348,7 +349,7 @@ export default {
                 if (segment.relationship.type == "PROPOSAL_OWNER") {
                   proposalObj["owner"] = segment.end.properties;
                   delete proposalObj["owner"]["password"];
-                  proposalObj.owner.avatar = `${endpoint}/media/avatar_${proposalObj.owner.uid}.png`;
+                  proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
                 }
               });
 
@@ -409,7 +410,7 @@ export default {
                 if (segment.relationship.type == "SUPERVISES") {
                   proposalObj["supervisor"] = segment.end.properties;
                   delete proposalObj["supervisor"]["password"];
-                  proposalObj.supervisor.avatar = `${endpoint}/media/avatar_${proposalObj.supervisor.uid}.png`;
+                  proposalObj.supervisor.avatar = `${endpoint.storage}/media/avatar_${proposalObj.supervisor.uid}.png`;
                 }
 
                 if (segment.relationship.type == "PROPOSAL_SUBJECT") {
@@ -419,7 +420,7 @@ export default {
                 if (segment.relationship.type == "PROPOSAL_OWNER") {
                   proposalObj["owner"] = segment.end.properties;
                   delete proposalObj["owner"]["password"];
-                  proposalObj.owner.avatar = `${endpoint}/media/avatar_${proposalObj.owner.uid}.png`;
+                  proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
                 }
 
                 if (segment.relationship.type == "EVALUATES") {                 
@@ -439,7 +440,7 @@ export default {
                   if (!evExist) {
                     let evObj = segment.end.properties;
                     delete evObj["password"];
-                    evObj.avatar = `${endpoint}/media/avatar_${evObj.uid}.png`;
+                    evObj.avatar = `${endpoint.storage}/media/avatar_${evObj.uid}.png`;
                     proposalObj.evaluator.push(evObj);
                   }
                 }
@@ -454,7 +455,7 @@ export default {
                 if (segment.relationship.type == "PROPOSAL_OWNER") {
                   proposalObj["owner"] = segment.end.properties;
                   delete proposalObj["owner"]["password"];
-                  proposalObj.owner.avatar = `${endpoint}/media/avatar_${proposalObj.owner.uid}.png`;
+                  proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
                 }
               });
 
@@ -465,7 +466,7 @@ export default {
                 if (segment.relationship.type == "SUPERVISES") {
                   proposalObj["supervisor"] = segment.start.properties;
                   delete proposalObj["supervisor"]["password"];
-                  proposalObj.supervisor.avatar = `${endpoint}/media/avatar_${proposalObj.supervisor.uid}.png`;
+                  proposalObj.supervisor.avatar = `${endpoint.storage}/media/avatar_${proposalObj.supervisor.uid}.png`;
                 }
 
                 if (segment.relationship.type == "EVALUATES") {                 
@@ -485,7 +486,7 @@ export default {
                   if (!evExist) {
                     let evObj = segment.start.properties;
                     delete evObj["password"];
-                    evObj.avatar = `${endpoint}/media/avatar_${evObj.uid}.png`;
+                    evObj.avatar = `${endpoint.storage}/media/avatar_${evObj.uid}.png`;
                     proposalObj.evaluator.push(evObj);
                   }
                 }

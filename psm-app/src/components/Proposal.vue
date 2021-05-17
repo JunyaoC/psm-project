@@ -564,7 +564,7 @@
 <script>
 import axios from "axios";
 import driver from "../neo4j.js";
-const endpoint = "http://185.185.40.33:3000";
+import endpoint from "@/endpoint.js";
 
 import Tiptap from "@/components/Tiptap.vue";
 import RemixIcon from "@/components/RemixIcon.vue";
@@ -632,12 +632,12 @@ export default {
 
                 case "SUPERVISES":
                   this.proposal.supervisor = segment.end.properties;
-                  this.proposal.supervisor.avatar = `${endpoint}/media/avatar_${this.proposal.supervisor.uid}.png`;
+                  this.proposal.supervisor.avatar = `${endpoint.storage}/media/avatar_${this.proposal.supervisor.uid}.png`;
                   break;
 
                 case "PROPOSAL_OWNER":
                   this.proposal.student = segment.end.properties;
-                  this.proposal.student.avatar = `${endpoint}/media/avatar_${this.proposal.student.uid}.png`;
+                  this.proposal.student.avatar = `${endpoint.storage}/media/avatar_${this.proposal.student.uid}.png`;
                   break;
 
                 case "EVALUATES":
@@ -646,7 +646,7 @@ export default {
                   }
 
                   this.proposal.evaluator.push({
-                    avatar: `${endpoint}/media/avatar_${segment.end.properties.uid}.png`,
+                    avatar: `${endpoint.storage}/media/avatar_${segment.end.properties.uid}.png`,
                     ...segment.end.properties,
                   });
 
@@ -731,7 +731,7 @@ export default {
                   _c["author"] = _a;
                   _c["timestamp"] = Number(_c["timestamp"])
                   _c["timestampParsed"] = moment(Number(_c["timestamp"])).format("hh:mm A Do MMM YY")
-                  _c["author"]["avatar"] = `${endpoint}/media/avatar_${_c["author"].uid}.png`;
+                  _c["author"]["avatar"] = `${endpoint.storage}/media/avatar_${_c["author"].uid}.png`;
 
                   comments.set(_c.uid, _c);
 
@@ -760,7 +760,7 @@ export default {
 
     fetchFiles() {
       axios
-        .get(`${endpoint}/proposal/list/${this.proposal_uid}`)
+        .get(`${endpoint.storage}/proposal/list/${this.proposal_uid}`)
         .then((res) => {
           let form_doc = res.data.filter((word) => {
             return /form_/g.test(word);
@@ -780,7 +780,7 @@ export default {
     removeFile(filename) {
       if (confirm("Remove File? (no undo)")) {
         axios
-          .get(`${endpoint}/proposal/remove/${this.proposal.uid}/${filename}`)
+          .get(`${endpoint.storage}/proposal/remove/${this.proposal.uid}/${filename}`)
           .then((res) => {
             this.$Notification({
               title: "Completed",
@@ -827,7 +827,7 @@ export default {
       formData.append("proposal_uid", this.proposal.uid);
 
       axios
-        .post(`${endpoint}/api/proposal_upload`, formData, {
+        .post(`${endpoint.storage}/api/proposal_upload`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -854,11 +854,11 @@ export default {
       formData.append("proposal_uid", this.proposal.uid);
 
       await axios.get(
-        `${endpoint}/proposal/remove/${this.proposal.uid}/${this.proposal.form_doc}`
+        `${endpoint.storage}/proposal/remove/${this.proposal.uid}/${this.proposal.form_doc}`
       );
 
       axios
-        .post(`${endpoint}/api/proposal_upload`, formData, {
+        .post(`${endpoint.storage}/api/proposal_upload`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -889,7 +889,7 @@ export default {
         .then((result) => {
           result.records.forEach((data) => {
             let lect = data.get("u").properties;
-            lect.avatar = `${endpoint}/media/avatar_${lect.uid}.png`;
+            lect.avatar = `${endpoint.storage}/media/avatar_${lect.uid}.png`;
             // console.log(lect.avatar);
             delete lect["password"];
             this.availableEv.push(lect);

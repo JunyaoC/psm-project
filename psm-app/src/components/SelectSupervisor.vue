@@ -107,7 +107,7 @@
 
 <script>
 import driver from "../neo4j.js";
-const endpoint = "http://185.185.40.33:3000";
+import endpoint from "@/endpoint.js";
 
 export default {
   name: "SelectSupervisor",
@@ -142,7 +142,7 @@ export default {
           result.records.forEach((data) => {
             // this.$store.state.user.session = {...}
             let lect = { ...data.get("lect")["properties"] };
-            lect.avatar = `${endpoint}/media/avatar_${lect.uid}.png`;
+            lect.avatar = `${endpoint.storage}/media/avatar_${lect.uid}.png`;
             this.availableSupervisor.push(lect);
             // this.$store.state.user.subject = {...data.get("allLect")['properties']}
           });

@@ -359,7 +359,7 @@
 
 <script>
 import axios from "axios";
-const endpoint = "http://185.185.40.33:3000";
+import endpoint from "@/endpoint.js";
 
 import driver from "../neo4j.js";
 import { uid } from "uid";
@@ -601,7 +601,7 @@ export default {
 
       this.operation = _op;
       this.drawerVisible = true;
-      console.log(endpoint + "/media/avatar_" + this.payload.uid + ".png");
+      console.log(endpoint.storage + "/media/avatar_" + this.payload.uid + ".png");
 
       switch (_op) {
         case "create":
