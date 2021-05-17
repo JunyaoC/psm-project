@@ -261,7 +261,7 @@
 
 <script>
 import driver from "../neo4j.js";
-const endpoint = "http://localhost:3000";
+const endpoint = "http://185.185.40.33:3000";
 
 export default {
   name: "ProposalList",
