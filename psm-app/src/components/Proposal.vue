@@ -1,23 +1,6 @@
 <template>
-  <div
-    style="
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      align-items: flex-start;
-    "
-  >
-    <div
-      style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        background: #e8e8e8;
-      "
-    >
+  <div style=" width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; " >
+    <div style=" display: flex; justify-content: space-between; align-items: center; width: 100%; background: #e8e8e8; " >
       <div style="padding: 0.5rem; display: flex; align-items: center">
         <div style="display: flex; align-items: center; width: 100%">
           <span style="font-size: 2rem; font-weight: 900; margin-right: 2rem">{{
@@ -28,13 +11,31 @@
               v-if="proposal.student.uid == $store.state.user.uid"
               style="margin: 0 1rem"
               size="small"
-              text
+              type="warning"
               @click="editProposal()"
               >edit</it-button
             >
           </div>
           <it-tag style="margin-right: 1rem">{{ proposal.type }}</it-tag>
-          <it-tag>{{ proposal.status_text }}</it-tag>
+          <it-tag v-if="!(roleMap.get($store.state.user.uid) == 'evaluator')">{{ proposal.status_text }}</it-tag>
+
+          <it-select
+              v-if="roleMap.get($store.state.user.uid) == 'evaluator'"
+              style="min-width:200px;"
+              v-model="evUpdateDecision"
+              :options="['Accepted','Accepted with Condition','Rejected','Pending Evaluation']"
+          >
+
+          </it-select>
+          <it-button v-if="roleMap.get($store.state.user.uid) == 'evaluator'" @click="evDecision()" >update</it-button>
+
+          <div v-if=" roleMap.get($store.state.user.uid) == 'supervisor' && proposal.status <= 1 " style="margin:0 1rem;">
+            <it-tooltip content="For Supervisor: Submit Proposal for Evaluation" placement="right">
+              <it-button @click="submitForEV()" type="primary" size="small" >Submit for Evaluation</it-button >
+            </it-tooltip>
+          </div>
+          
+
         </div>
       </div>
 
@@ -86,18 +87,20 @@
             display: flex;
             justify-content: flex-start;
             align-items: center;
+            margin:0 0.5rem;
           "
         >
           <it-avatar :src="ev.avatar" style="margin-right: 1rem"></it-avatar>
           <div style="margin-bottom: 0.5rem">
             <span style="font-size: 0.8rem; font-weight: 900">evaluator</span
             ><br />
-            <span>{{ ev.name }}</span>
+            <span v-if="!(!ev.uid && $store.state.user.level == 3)">{{ ev.name }}</span>
+            <it-button @click="selectEvaluator()" v-if="!ev.uid && $store.state.user.level == 3" type="warning" size="small">Assign</it-button>
           </div>
         </div>
       </div>
     </div>
-    <div style="width: 100%; height: 100%; overflow-y: hidden">
+    <div style="width: 100%; height: 100%; overflow-y: hidden;">
       <div
         style="
           width: 100%;
@@ -107,7 +110,7 @@
           align-items: flex-start;
         "
       >
-        <div style="width: 350px; padding: 0.5rem">
+        <div style="padding: 0.5rem;width:300px;max-width:300px;flex-shrink:0;min-width:300px;">
           <div
             style="
               width: 100%;
@@ -120,19 +123,24 @@
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <div style="display:flex;">
                 <span style="font-size: 1.2rem; font-weight: 900;margin-right:10px;">Attachments</span>
-                <it-button @click="uploadAttModal = true" size="small" outlined round type="success">
-                  <it-icon name="add"></it-icon>
-                </it-button>
+                <it-tooltip>
+                  <template v-slot:content>
+                    <it-tag filled type="success">upload</it-tag> attachments
+                  </template>
+                  <it-button @click="uploadAttModal = true" size="small" outlined round type="success">
+                    <it-icon name="add"></it-icon>
+                  </it-button>
+                </it-tooltip>
               </div>
-              <it-button size="small" text>
+              <!-- <it-button size="small" text>
                 <div style="display:flex;align-items:center;">
                   <it-icon name="download" style="margin-top:5%;margin-right:10px;font-size:1.2rem;"></it-icon>
                   <span>all</span>
                 </div>
-              </it-button>
+              </it-button> -->
             </div>
 
-            <table style="table-layout: fixed; width: 100%;margin-top:1rem;">
+            <table style="width: 100%;margin-top:1rem;table-layout:fixed;">
               <tr>
                 <td style="width:10%;">
                   <RemixIcon
@@ -145,18 +153,25 @@
                     "
                   ></RemixIcon>
                 </td>
-                <td style="width:70%;">
+                <td style="width:60%;">
                   <span>Proposal Form</span>
                 </td>
                 <td style="display: flex;width:20%;justify-content:space-between;">
-                  <it-button size="small" type="primary" text @click="downloadFile('http://localhost:3000/proposal/' + proposal.uid + '/' + proposal.form_doc)"
+                  <it-button size="small" type="primary" text @click="downloadFile( '/proposal/' + proposal.uid + '/' + proposal.form_doc)"
                     >
                     <it-icon name="get_app"></it-icon>
                     </it-button
                   >
-                  <it-button size="small" type="warning" outlined @click="uploadFormModal = true">
+                  <it-tooltip placement="right">
+                    <template v-slot:content>
+                      <span>
+                        <it-tag type="warning">Warning</it-tag> Reuploading the form will replace the current copy.
+                      </span>
+                    </template>
+                    <it-button size="small" type="warning" outlined @click="uploadFormModal = true">
                     <it-icon name="refresh" style="color:#ff9345;"  ></it-icon>
                   </it-button>
+                  </it-tooltip>
                 </td>
               </tr>
 
@@ -175,12 +190,10 @@
                 <td
                   style="
                     overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    width:70%;
+                    word-wrap: break-word;
                   "
                 >
-                  <span>{{ att }}</span>
+                  <span >{{ att }}</span>
                 </td>
                 <td style="display: flex;width:20%;justify-content:space-between;">
                   <it-button size="small" type="primary" text @click="downloadFile('http://localhost:3000/proposal/' + proposal.uid + '/' + att)"
@@ -188,53 +201,76 @@
                     <it-icon name="get_app"></it-icon>
                     </it-button
                   >
-                  <it-button size="small" type="danger" outlined @click="removeFile(att)">
-                    <it-icon name="delete"></it-icon>
-                  </it-button>
+                  <it-tooltip placement="right">
+                    <template v-slot:content>
+                      <it-tag type="danger" filled>Permanently Delete</it-tag> the attachement.
+                    </template>
+                    <it-button size="small" type="danger" outlined @click="removeFile(att)">
+                      <it-icon name="delete"></it-icon>
+                    </it-button>
+                  </it-tooltip>
                 </td>
               </tr>
             </table>
           </div>
         </div>
 
-        <div style="width:100%;height:100%;padding:0.5rem;background:#d9d5d0;overflow-y:scroll;scroll-behavior: smooth;" id="chatContainer">
+        <div style="width:100%;height:100%;background:#d9d5d0;flex-grow:0;" id="chatContainer">
 
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;background:white;padding:0.5rem;">
               <div style="display:flex;">
                 <span style="font-size: 1.4rem; font-weight: 900;margin-right:10px;">Comments</span>
               </div>
-              <it-button size="small" @click="addCommentModal = true">
+              <it-button type="success" @click="addCommentModal = true">
                 <div style="display:flex;align-items:center;">
                   <it-icon name="add" style="margin-right:10px;font-size:1.2rem;"></it-icon>
-                  <span>post comment</span>
+                  <span style="font-size:1.2rem;font-weight:900;">post comment</span>
                 </div>
               </it-button>
             </div>
 
-          <div v-for="comment of proposal.comment" :key="comment">
-            
-            <div class="chatDiv" :class="{ self: (comment.author.uid == $store.state.user.uid)}">
-              <div class="chatContent">
-                <div class="chatHeader">
-                  <it-avatar :src="comment.author.avatar"></it-avatar>
-                  <div>
-                    <span class="headerText">{{comment.author.name}}</span>
-                  </div>
+          <div v-if="!proposal.comment ||proposal.comment.length == 0" style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;flex-direction:column;">
+              <img style="width:40vh;height:40vh;object-fit:contain;margin-top:-10vh;" src="@/assets/dialog.png">
+              <h1 style="text-align:center;">No Comments Yet</h1>
+              <it-button type="success" @click="addCommentModal = true">
+                <div style="display:flex;align-items:center;">
+                  <it-icon name="add" style="margin-right:10px;font-size:1.2rem;"></it-icon>
+                  <span style="font-size:1.2rem;font-weight:900;">Add First Comment</span>
                 </div>
-                <div class="chatBody">
-                  <div v-html="comment.content"></div>
-                </div>
+              </it-button>
+          </div>
 
-                <div style="display:flex;background:#f0f0f0;border-radius:0 0 10px 10px;padding:5px;align-items:center;justify-content:space-between;">
-                  <span style="font-size:0.8rem;color:rgba(0,0,0,0.5);">{{comment.timestampParsed}}</span>
-                    <it-button v-if="comment.author.uid == $store.state.user.uid" type="danger" text size="small" @click="removeComment(comment)" >delete</it-button>
+          <div style="width:100%;height:100%;overflow-y:scroll;scroll-behavior: smooth;padding:0.5rem;">
+            <div v-for="comment of proposal.comment" :key="comment">
+              
+              <div class="chatDiv" :class="{ self: (comment.author.uid == $store.state.user.uid)}">
+                <div class="chatContent">
+                  <div class="chatHeader">
+                    <it-avatar :src="comment.author.avatar"></it-avatar>
+                    <div>
+                      <it-tag class="headerText">{{roleMap.get(comment.author.uid)}}</it-tag><br>
+                      <span class="headerText">{{comment.author.name}}</span>
+                    </div>
+                  </div>
+                  <div class="chatBody">
+                    <div v-html="comment.content"></div>
+                  </div>
+
+                  <div style="display:flex;background:#f0f0f0;border-radius:0 0 10px 10px;padding:5px;align-items:center;justify-content:space-between;">
+                    <span style="font-size:0.8rem;color:rgba(0,0,0,0.5);">{{comment.timestampParsed}}</span>
+                      <it-button v-if="comment.author.uid == $store.state.user.uid" type="danger" text size="small" @click="removeComment(comment)" >delete</it-button>
+                  </div>
+                  
                 </div>
-                
               </div>
+
+              
             </div>
 
-            
           </div>
+
+
+          
 
 
         </div>
@@ -424,9 +460,10 @@
                 style="margin-right: 1rem"
                 :src="$store.state.user.avatar"
               ></it-avatar>
-              <h4>{{ $store.state.user.name }}</h4>
+              <h4 style="margin:0;margin-right:1rem;">{{ $store.state.user.name }}</h4>              
+              <it-tag>{{roleMap.get($store.state.user.uid)}}</it-tag>
             </div>
-            <it-button type="primary" @click="postComment()"
+            <it-button :disabled="!postContent" type="primary" @click="postComment()"
               >Post Comment</it-button
             >
           </div>
@@ -546,6 +583,7 @@
       display: flex;
       flex-direction: row-reverse;
       align-items: center;
+      justify-content: space-between;
     }
 
     .chatBody{
@@ -598,6 +636,8 @@ export default {
         title: "",
         type: {},
       },
+      roleMap: new Map(),
+      evUpdateDecision:{value:1}
     };
   },
   mounted() {
@@ -610,6 +650,7 @@ export default {
       let session2 = driver.session();
 
       this.proposal.evaluator = [];
+      this.roleMap = new Map();
 
       session1
         .run("MATCH p = (prop:Proposal {uid:$p_uid})-[*1..1]-() RETURN p", {
@@ -631,13 +672,17 @@ export default {
                   break;
 
                 case "SUPERVISES":
+                  
                   this.proposal.supervisor = segment.end.properties;
                   this.proposal.supervisor.avatar = `${endpoint.storage}/media/avatar_${this.proposal.supervisor.uid}.png`;
+                  this.roleMap.set(this.proposal.supervisor.uid,'supervisor')
                   break;
 
                 case "PROPOSAL_OWNER":
+                  
                   this.proposal.student = segment.end.properties;
                   this.proposal.student.avatar = `${endpoint.storage}/media/avatar_${this.proposal.student.uid}.png`;
+                  this.roleMap.set(this.proposal.student.uid,'student')
                   break;
 
                 case "EVALUATES":
@@ -649,6 +694,8 @@ export default {
                     avatar: `${endpoint.storage}/media/avatar_${segment.end.properties.uid}.png`,
                     ...segment.end.properties,
                   });
+                  
+                  this.roleMap.set(segment.end.properties.uid,'evaluator')
 
                   break;
               }
@@ -689,18 +736,25 @@ export default {
             case 0:
               this.proposal.type_color = "danger";
               this.proposal.status_text = "Rejected";
+              this.evUpdateDecision = "Rejected"
               break;
             case 1:
               this.proposal.status_text = "Pending Evaluation";
+              // this.evUpdateDecision = {'label':'Pending Evulation','value':1}
+              this.evUpdateDecision = "Pending Evaluation"
               break;
             case 2:
               this.proposal.type_color = "warning";
               this.proposal.status_text = "Accepted with Condition";
+              this.evUpdateDecision = "Accepted with Condition"
+              // this.evUpdateDecision = {'label':'Accept with Condition','value':2}
               break;
 
             case 3:
               this.proposal.type_color = "success";
               this.proposal.status_text = "Accepted";
+              this.evUpdateDecision = "Accepted"
+              // this.evUpdateDecision = {'label':'Accept','value':3}
               break;
           }
 
@@ -915,6 +969,7 @@ export default {
             this.$Notification({
               title: "Completed",
               text: `Assigned Evaluator`,
+              placement: 'top-left',
             });
 
             this.fetchProposal();
@@ -937,6 +992,7 @@ export default {
             this.$Notification({
               title: "Completed",
               text: `Removed Evaluator`,
+              placement: 'top-left',
             });
 
             this.fetchProposal();
@@ -949,7 +1005,6 @@ export default {
     },
 
     postComment() {
-      if (confirm("Post Comment")) {
         let session = driver.session();
 
         session
@@ -973,15 +1028,17 @@ export default {
           )
           .then(() => {
             this.addCommentModal = false;
+            this.postContent = ''
 
             this.$Notification({
               title: "Completed",
               text: "Comment Posted",
+              placement: 'top-left',
             });
 
             this.fetchProposal();
           });
-      }
+
     },
     removeComment(comment) {
       if (confirm("Remove Comment?")) {
@@ -1000,6 +1057,7 @@ export default {
             this.$Notification({
               title: "Deleted",
               text: "Wiped the comment",
+              placement: 'top-left',
             });
 
             this.fetchProposal();
@@ -1026,8 +1084,29 @@ export default {
       }
     },
 
-    evDecision(statCode, msg) {
-      if (confirm(msg)) {
+    evDecision() {
+
+      let statCode
+
+        switch(this.evUpdateDecision){
+          case "Accepted":
+            statCode = 3;
+          break;
+
+          case "Accepted with Condition":
+            statCode = 2;
+          break;
+
+          case "Rejected":
+            statCode = 0;
+          break;
+
+          case "Pending Evaluation":
+            statCode = 1;
+          break;
+
+        }
+
         let session = driver.session();
 
         session
@@ -1049,7 +1128,7 @@ export default {
             // this.fetchProposal();
             window.location.reload();
           });
-      }
+      
     },
 
     editProposal() {
@@ -1085,7 +1164,7 @@ export default {
         });
     },
     downloadFile(link){
-      window.open(link,'_blank')
+      window.open(endpoint.storage + link,'_blank')
     },
     jumpToLatest(){
       setTimeout(() => {

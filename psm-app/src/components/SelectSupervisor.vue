@@ -43,19 +43,37 @@
       <tr>
         <th>Status</th>
         <td>
-          {{
-            $store.state.user.supervisor
-              ? $store.state.user.supervisor.status
-              : "-"
-          }}
+          <span v-if="$store.state.user.supervisor.status == 'approved'">
+            <it-tag filled type="success">Approved</it-tag>
+          </span>
+          <span v-if="$store.state.user.supervisor.status == 'pending'">
+            <it-tag filled type="warning">Pending</it-tag>
+          </span>
+          <span v-if="$store.state.user.supervisor.status == 'rejected'">
+            <it-tag filled type="danger">Rejected</it-tag>
+          </span>
+          <span v-if="$store.state.user.supervisor.status == '-'">
+            <it-tag>Pending Selection</it-tag>
+          </span>
         </td>
       </tr>
     </table>
   </div>
 
+  <div style="text-align:left;width:100%;display:flex;justify-content:space-between;align-items:center;margin:1rem 0;">
+    <p style="margin-right:2rem;">
+    Note: By placing request, you are subjected to agree the Agreement.
+  </p>
+
+  <it-button size="small" @click="viewAgreement()">view agreement</it-button>
+  
+
+  </div>
+  
   <it-button block @click="selectLecturerModal = true" v-if="$store.state.user.supervisor.status != 'approved'" :disabled="$store.state.user.supervisor.status == 'pending'"
-    >View and Select</it-button
-  >
+      >View and Select</it-button>
+
+  
 
   <it-modal width="600px" v-model="selectLecturerModal">
     <div class="modalWrapper">
@@ -155,7 +173,7 @@ export default {
         console.log(this.$store.state.user.uid);
 
         if (true) {
-          //// check if the user has already made an agreeement
+          //// check if the user has already made an agreement
 
           let session = driver.session();
 
@@ -212,6 +230,9 @@ export default {
         }
       }
     },
+    viewAgreement(){
+      window.location.href = endpoint.storage + '/media/agreement.txt'
+    }
   },
 };
 </script>

@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import createPersistedState from "vuex-persistedstate";
 
-const endpoint = "http://185.185.40.33:3000"
+import endpoint from "@/endpoint.js";
 
 export default createStore({
   state: {
@@ -15,11 +15,7 @@ export default createStore({
   mutations: {
     setUser : (state, user) => {
       state.user = {...user};
-      state.user.avatar = `${endpoint}/media/avatar_${user.uid}.png`;
-    },
-    removeUser : (state) => {
-      state = {}
-      
+      state.user.avatar = `${endpoint.storage}/media/avatar_${user.uid}.png`;
     }
   },
   actions: {

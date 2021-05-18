@@ -1,6 +1,6 @@
 <template>
 
-  <div class="wrapper">
+  <div class="loginWrapper">
     <div class="loginDiv">
         
       <div class="content">
@@ -67,7 +67,8 @@ import router from '../router'
               this.$store.commit('setUser',data);
 
               this.showLogin = false;
-              router.push({ name: "Home" });
+              router.replace({ path: "/" });
+              // window.location.reload();
             }else{
               this.showLogin = true;
               alert("Login Failed. Please check your Email or Password.")
@@ -110,7 +111,7 @@ import router from '../router'
     }
   }
   
-  .wrapper{
+  .loginWrapper{
     width: 100%;
     height: 100%;
     display: flex;

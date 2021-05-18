@@ -7,6 +7,17 @@
         <h1 style="margin-right: 2rem">Users</h1>
 
         <it-button round @click="openForm('create', false)"> add </it-button>
+
+        <div style="margin:0 1rem;">
+          <it-checkbox type="primary" label="View PSM Committee Only" v-model="filters.psm_only" />
+        </div>
+
+        <div style="margin:0 1rem;">
+          <it-select @click="refreshFilter()" style="min-width:300px;" label-top="Filter Subject" :options="[{'code':'all','uid':'all','name':'All'},...subjects]" track-by="name" v-model="filters.subject">
+
+          </it-select>
+        </div>
+
       </div>
 
       <it-button text> import </it-button>
@@ -24,9 +35,16 @@
             <th style="text-align: center" v-if="$store.state.user.level == 3">Supervise</th>
           </tr>
 
-          <tr class="dataRow" v-for="lecturer in lecturers" :key="lecturer">
-            <td>{{ lecturer.name }}</td>
-            <td>{{ lecturer.domain }}</td>
+          <tr class="dataRow" v-for="lecturer in filteredLecturers" :key="lecturer">
+            <td>{{ lecturer.name }} <span v-if="lecturer.level == 3"><it-tag type="primary" filled>PSM</it-tag></span> </td>
+            <td>
+              <span v-if="lecturer.domain == 'To Be Assigned'">
+                <it-tooltip content="To be assigned by PSM Committee">
+                  <it-tag type="warning" filled  style="cursor:pointer;">{{lecturer.domain}}</it-tag>
+                </it-tooltip>
+              </span>
+              <span v-if="lecturer.domain != 'To Be Assigned'">{{ lecturer.domain }}</span>
+              </td>
             <td>{{ lecturer.subject.name }}</td>
             <td>{{ lecturer.email }}</td>
             <td>
@@ -136,6 +154,21 @@
         >
         <it-button type="danger" size="small" @click="approveSVRequest(false)"
           >Reject</it-button
+        >
+      </div>
+
+      <div
+        v-if="viewStudent.status == 'approved'"
+        style="
+          display: flex;
+          justify-content: flex-start;
+          width: 100%;
+          align-items: center;
+          margin-top: 1rem;
+        "
+      >
+        <it-button type="danger" size="small" @click="revokeSVRequest()"
+          >Revoke</it-button
         >
       </div>
     </div>
@@ -269,7 +302,7 @@
 
       </div>
       <div v-if="formData.user_type == 'Lecturer'" style="padding: 1rem 0">
-        <it-switch v-model="formData.user_committee" label="PSM Committee" />
+        <it-switch :disabled="$store.state.user.level != 4" v-model="formData.user_committee" label="PSM Committee" />
       </div>
 
       <h3 v-if="$store.state.user.level == 4 && formData.user_type == 'Lecturer'" >Login Credentials</h3>
@@ -281,7 +314,7 @@
       />
       <it-button
         style="margin-top: 1rem"
-        v-if="operation == 'edit' && $store.state.user.level == 4 && formData.user_type == 'Lecturer' "
+        v-if="operation == 'edit'"
         @click="changePassword()"
         >Change Password</it-button
       >
@@ -398,6 +431,10 @@ export default {
       svRequestModal: false,
       viewLect: false,
       viewStudent: false,
+      filters:{
+        psm_only:false,
+        subject:{'code':'all','uid':'all','name':'All'}
+      }
     };
   },
   methods: {
@@ -504,6 +541,36 @@ export default {
 
           break;
       }
+    },
+
+    revokeSVRequest(){
+      var session1 = driver.session();
+
+            session1
+              .run(
+                ` 
+                  MATCH (lect:User {uid:$lect_uid})-[r1:SUPERVISOR_OF]->(stud:User {uid:$stud_id})
+                  CREATE (lect)<-[nr1:REQUEST_SUPERVISE]-(stud)
+                  SET nr1=r1
+                  WITH r1
+                  DELETE r1
+                  `,
+                {
+                  lect_uid: this.viewLect.uid,
+                  stud_id: this.viewStudent.student.uid,
+                }
+              )
+              .then((result) => {
+                this.svRequestModal = false;
+
+                this.$Notification({
+                  title: "Revoked",
+                  text: `Revoked Supervisor Request. Please make your decision again.`,
+                });
+
+                this.fetchUser();
+                session1.close();
+              });
     },
 
     async fetchUser() {
@@ -643,8 +710,7 @@ export default {
               user_name: this.payload.name,
               user_password: this.payload.password,
               user_avatar: "",
-              user_avatar_src:
-                endpoint + "/media/avatar_" + this.payload.uid + ".png",
+              user_avatar_src: endpoint.storage + "/media/avatar_" + this.payload.uid + ".png",
               user_subject: this.payload.subject,
               user_domain: "",
               user_contact: this.payload.contact,
@@ -661,13 +727,13 @@ export default {
               user_name: this.payload.name,
               user_password: this.payload.password,
               user_avatar: "",
-              user_avatar_src: endpoint + "/media/avatar_" + this.payload.uid + ".png",
+              user_avatar_src: endpoint.storage + "/media/avatar_" + this.payload.uid + ".png",
               user_subject: this.payload.subject,
               user_domain: this.payload.domain,
               user_contact: this.payload.contact,
+              user_committee: payload.level == 3 ? true : false
             };
           }
-
           break;
       }
     },
@@ -713,6 +779,13 @@ export default {
         })
         .then(() => {
           session.close();
+
+          this.$Notification({
+            title: "Success 🎊",
+            text: `User ${this.payload.name} has been updated successfully.`,
+          });
+
+
         });
     },
 
@@ -780,7 +853,7 @@ export default {
           formData.append("avatar", newFile);
 
           axios
-            .post(`${endpoint}/api/upload`, formData, {
+            .post(`${endpoint.storage}/api/upload`, formData, {
               headers: {
                 "Content-Type": "multipart/form-data",
               },
@@ -962,7 +1035,7 @@ export default {
             formData.append("avatar", newFile);
 
             axios
-              .post(`${endpoint}/api/upload`, formData, {
+              .post(`${endpoint.storage}/api/upload`, formData, {
                 headers: {
                   "Content-Type": "multipart/form-data",
                 },
@@ -976,7 +1049,13 @@ export default {
 
           switch (this.formData.user_type) {
             case "Student":
-              session
+
+              session.run(`MATCH (s2:Session {uid:$old_session_uid})<-[r1:STUDENT_OF]-(u:User { uid:$uid })-[r2:MAJOR_IN]->(s:Subject { uid:$old_s_uid}) DELETE r1,r2`,{
+                uid: this.payload.uid,
+                old_session_uid:this.payload.session.uid,
+                old_s_uid: this.payload.subject.uid
+              }).then( () => {
+                              session
                     .run(
                       `MATCH (u:User {
                       uid:$uid
@@ -1024,6 +1103,10 @@ export default {
                         });
                     });
 
+              })
+
+
+
               break;
 
             case "Lecturer":
@@ -1048,7 +1131,11 @@ export default {
                     `;
               }
 
-              session
+              session.run(`MATCH (u:User { uid:$uid })-[r:LECTURER_OF]->(s:Subject { uid:$old_s_uid}) DELETE r`,{
+                uid: this.payload.uid,
+                old_s_uid: this.payload.subject.uid
+              }).then( () => {
+                session
                     .run(
                       `MATCH (u:User {
                       uid:$uid
@@ -1088,12 +1175,52 @@ export default {
                           });
                         });
                     });
+              })
+
+              
               break;
           }
 
           break;
       }
     },
+
+    refreshFilter(){
+      this.filters.psm_only = !this.filters.psm_only
+      this.filters.psm_only = !this.filters.psm_only
+    },
+    intersect(a, b) {
+      var setB = new Set(b);
+      return [...new Set(a)].filter(x => setB.has(x));
+    }
   },
+  computed: {
+    filteredLecturers(){
+
+      console.log(this.filters)
+
+      let subjectResult;
+
+      if(this.filters.subject.uid == 'all'){
+        subjectResult = this.lecturers;
+      }else{
+        subjectResult = this.lecturers.filter( _l => _l.subject.uid == this.filters.subject.uid)
+      }
+
+      let psmResult;
+
+      if(this.filters.psm_only){
+        psmResult = this.lecturers.filter( _l => _l.level == 3)
+      }else{
+        psmResult = this.lecturers;
+      }
+
+      let combinedResult = this.intersect(subjectResult,psmResult);
+      console.log(combinedResult);
+
+      return combinedResult;
+
+    }
+  }
 };
 </script>

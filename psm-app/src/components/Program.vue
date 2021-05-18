@@ -28,15 +28,11 @@
         <table style="width: 100%; text-align: left">
           <tr>
             <th>Academic Session</th>
-            <th>No. of Students</th>
-            <th>No. of Proposal</th>
             <th style="text-align: center">Action</th>
           </tr>
 
           <tr class="dataRow" v-for="session in sessions" :key="session.uid">
             <td>{{ session.name }}</td>
-            <td>0</td>
-            <td>0</td>
             <td
               style="
                 text-align: center;

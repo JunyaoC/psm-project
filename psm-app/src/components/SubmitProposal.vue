@@ -37,7 +37,7 @@
       </div>
 
       <div style="padding:1rem 0;">
-        <it-button type="primary" @click="submitProposal()">Submit</it-button>
+        <it-button type="primary" @click="submitProposal()" :disabled="!student_proposal.form_file || !student_proposal.type || !student_proposal.title">Submit</it-button>
       </div>
       
 
@@ -57,6 +57,7 @@
 
   export default {
     name: "ProposalSubmit",
+    emits: ['submitProposal'],
     data(){
       return {
         student_proposal: {
@@ -156,10 +157,10 @@
         }).then((result) => {
           
           this.$Notification({
-            title: "Proposal Submitted ⚠",
+            title: "Proposal Submitted",
             text: `The proposal has been submitted!`,
           });
-
+          this.$emit('submitProposal',true)
 
           session1.close();
         });

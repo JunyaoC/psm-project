@@ -42,6 +42,10 @@ const routes = [
     name: 'Login',
     component: Login,
   },
+  {
+    path:'/:pathMatch(.*)*',
+    redirect:'/'
+  },
 ]
 
 const router = createRouter({
@@ -49,27 +53,27 @@ const router = createRouter({
   routes
 })
 
-// router.beforeEach((to, from, next) => {
+router.beforeEach((to, from, next) => {
 
-//   console.log(to)
+  console.log(to)
 
-//   if (store.state.user) {
-//     if (to.name === 'Login') {
-//       next({ name: 'Home' })
-//     } else {
-//       next()
-//     }
-//   } else {
-//     if (to.name === 'Login') {
-//       next()
-//     } else {
-//       next({ name: 'Login' })
-//     }
-//   }
+  if (store.state.user) {
+    if (to.name === 'Login') {
+      next({ name: 'Home' })
+    } else {
+      next()
+    }
+  } else {
+    if (to.name === 'Login') {
+      next()
+    } else {
+      next({ name: 'Login' })
+    }
+  }
 
-//   // if (to.name !== 'Login' && !store.state.user) next({ name: 'Login' })
-//   // else if (to.name === 'Login' && store.state.user) next({ name: 'Home' })
-//   // else next()
-// })
+  // if (to.name !== 'Login' && !store.state.user) next({ name: 'Login' })
+  // else if (to.name === 'Login' && store.state.user) next({ name: 'Home' })
+  // else next()
+})
 
 export default router

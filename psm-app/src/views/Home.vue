@@ -1,11 +1,11 @@
 <template>
-  <div class="wrapper">
+  <div class="homeWrapper">
     <div class="left-pane">
       <div>
 
       </div>
-      <div>
-        <div>
+      <div v-if="$store.state.user">
+        <div v-if="$store.state.user.level == 3">
           <router-link to="/user">
           <it-tooltip placement="right">
             <template v-slot:content>
@@ -33,7 +33,7 @@
         </router-link>
         </div>
 
-        <div>
+        <div v-if="$store.state.user.level == 3 || $store.state.user.level == 2">
           <router-link to="/proposal">
           <it-tooltip placement="right">
             <template v-slot:content>
@@ -60,11 +60,11 @@
 
         <it-tooltip placement="right">
           <template v-slot:content>
-            <div>
+            <div v-if="$store.state.user">
               <span style="margin-right:0.5rem;">{{$store.state.user.name}}</span>
               <it-tag v-if="$store.state.user.level == 4" type="black" filled>Admin</it-tag>
               <it-tag v-if="$store.state.user.level == 3" type="primary" filled>PSM Lecturer</it-tag>
-              <it-tag v-if="$store.state.user.level == 2" type="sucess" filled>Lecturer</it-tag>
+              <it-tag v-if="$store.state.user.level == 2" type="success" filled>Lecturer</it-tag>
               <it-tag v-if="$store.state.user.level == 1">Student</it-tag>
             </div>
             <span>Email: {{$store.state.user.email}}</span>
@@ -97,7 +97,6 @@
 // @ is an alias to /src
 
 import router from "../router";
-// const endpoint = "http://185.185.40.33:3000";
 import endpoint from "@/endpoint.js";
 
 export default {
@@ -111,29 +110,49 @@ export default {
     };
   },
   mounted() {
-    if (this.$route.path == "/") {
+    if (this.$route.path === "/") {
       switch (this.$store.state.user.level) {
         case 1:
-          router.push({ path: "/student" });
+          router.replace({ path: "/student" });
           break;
 
         case 2:
         case 3:
-          router.push({ path: "/proposal" });
+          router.replace({ path: "/proposal" });
           break;
 
         case 4:
-          router.push({ path: "/user" });
+          router.replace({ path: "/user" });
           break;
       }
     }
   },
   methods: {
-    performLogout() {
+    async performLogout() {
       if (confirm("Are you sure you want to logout?")) {
-        this.$store.commit("removeUser");
+        // this.$store.commit("removeUser");
 
-        router.push({ name: "Login" });
+        let logoutPromise = new Promise( resolve => {
+          
+          let state = this.$store.state;
+          let newState = {};
+
+          localStorage.removeItem('vuex')
+
+          Object.keys(state).forEach(key => {
+            newState[key] = null; // or = initialState[key]
+          });
+
+          this.$store.replaceState(newState);
+
+          resolve(true);
+        })
+
+        await logoutPromise;
+
+        // router.push({ name: "Login" });
+        window.location.replace('/login')
+        
       }
     },
   },
@@ -141,7 +160,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.wrapper {
+.homeWrapper {
   width: 100%;
   height: 100%;
   // max-width: 100vw;
@@ -158,7 +177,7 @@ export default {
   width: 100%;
   height: 100%;
   display: flex;
-  max-width: 1500px;
+  // max-width: 1500px;
   flex-direction: column;
   justify-content: flex-start;
 }

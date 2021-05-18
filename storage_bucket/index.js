@@ -1,6 +1,6 @@
 const express = require('express');
 var cors = require('cors')
-var https = require('https')
+//var https = require('https')
 
 var fs = require('fs');
 const fileUpload = require('express-fileupload');
@@ -109,16 +109,16 @@ app.use('/proposal/:proposal_uid/:file_name', async (req,res) => {
   res.sendFile(path, {root: __dirname});
 })
 
-//app.listen(3000, () => {
-//  console.log('Server listening on http://localhost:3000 ...');
-//});
+app.listen(3000, () => {
+  console.log('Server listening on http://localhost:3000 ...');
+});
 
 var options = {
   key: fs.readFileSync('./cert/private.key'),
   cert: fs.readFileSync('./cert/public.cert')
 };
 
-https.createServer(options, app).listen(3000, () => {
-    console.log("Server listening on https://localhost:3000")
-});
+//https.createServer(options, app).listen(3000, () => {
+//    console.log("Server listening on https://localhost:3000")
+//});
 
