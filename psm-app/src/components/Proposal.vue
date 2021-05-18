@@ -3,18 +3,39 @@
     <div style=" display: flex; justify-content: space-between; align-items: center; width: 100%; background: #e8e8e8; " >
       <div style="padding: 0.5rem; display: flex; align-items: center">
         <div style="display: flex; align-items: center; width: 100%">
-          <span style="font-size: 2rem; font-weight: 900; margin-right: 2rem">{{
-            proposal.title
-          }}</span>
+          <div style="margin-right: 2rem;font-weight: 900;">
+            <span style="font-size: 2rem;">{{
+              proposal.title
+            }}</span><br>
+            <span>{{ proposal.subject ? proposal.subject.name : '' }}</span><br>
+            <span>Semester {{ proposal.student ? proposal.student.semester : ''}}</span>
+            <span v-if="proposal.student">
+              <span v-if="proposal.student.session">
+                / Session {{proposal.student.session.name}}
+              </span>
+              </span><br>
+          </div>
           <div v-if="proposal.student">
-            <it-button
-              v-if="proposal.student.uid == $store.state.user.uid"
-              style="margin: 0 1rem"
-              size="small"
-              type="warning"
-              @click="editProposal()"
-              >edit</it-button
-            >
+            <div v-if="$store.state.rules.proposal.allow_student_edit_after_submit">
+              <it-button
+                v-if="proposal.student.uid == $store.state.user.uid"
+                style="margin: 0 1rem"
+                size="small"
+                type="warning"
+                @click="editProposal()"
+                >edit</it-button
+              >
+            </div>
+            <div v-if="!$store.state.rules.proposal.allow_student_edit_after_submit">
+              <it-button
+                v-if="proposal.student.uid == $store.state.user.uid && proposal.status <= 0"
+                style="margin: 0 1rem"
+                size="small"
+                type="warning"
+                @click="editProposal()"
+                >edit</it-button
+              >
+            </div>
           </div>
           <it-tag style="margin-right: 1rem">{{ proposal.type }}</it-tag>
           <it-tag v-if="!(roleMap.get($store.state.user.uid) == 'evaluator')">{{ proposal.status_text }}</it-tag>
@@ -23,13 +44,13 @@
               v-if="roleMap.get($store.state.user.uid) == 'evaluator'"
               style="min-width:200px;"
               v-model="evUpdateDecision"
-              :options="['Accepted','Accepted with Condition','Rejected','Pending Evaluation']"
+              :options="['Accepted','Accepted with Condition','Rejected','Pending Evaluation','Pending Supervisor Review']"
           >
 
           </it-select>
           <it-button v-if="roleMap.get($store.state.user.uid) == 'evaluator'" @click="evDecision()" >update</it-button>
 
-          <div v-if=" roleMap.get($store.state.user.uid) == 'supervisor' && proposal.status <= 1 " style="margin:0 1rem;">
+          <div v-if=" roleMap.get($store.state.user.uid) == 'supervisor' && proposal.status == 0 " style="margin:0 1rem;">
             <it-tooltip content="For Supervisor: Submit Proposal for Evaluation" placement="right">
               <it-button @click="submitForEV()" type="primary" size="small" >Submit for Evaluation</it-button >
             </it-tooltip>
@@ -196,7 +217,7 @@
                   <span >{{ att }}</span>
                 </td>
                 <td style="display: flex;width:20%;justify-content:space-between;">
-                  <it-button size="small" type="primary" text @click="downloadFile('http://localhost:3000/proposal/' + proposal.uid + '/' + att)"
+                  <it-button size="small" type="primary" text @click="downloadFile('/proposal/' + proposal.uid + '/' + att)"
                     >
                     <it-icon name="get_app"></it-icon>
                     </it-button
@@ -221,7 +242,7 @@
               <div style="display:flex;">
                 <span style="font-size: 1.4rem; font-weight: 900;margin-right:10px;">Comments</span>
               </div>
-              <it-button type="success" @click="addCommentModal = true">
+              <it-button type="success" @click="addCommentModal = true" v-if="canComment">
                 <div style="display:flex;align-items:center;">
                   <it-icon name="add" style="margin-right:10px;font-size:1.2rem;"></it-icon>
                   <span style="font-size:1.2rem;font-weight:900;">post comment</span>
@@ -232,7 +253,7 @@
           <div v-if="!proposal.comment ||proposal.comment.length == 0" style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;flex-direction:column;">
               <img style="width:40vh;height:40vh;object-fit:contain;margin-top:-10vh;" src="@/assets/dialog.png">
               <h1 style="text-align:center;">No Comments Yet</h1>
-              <it-button type="success" @click="addCommentModal = true">
+              <it-button type="success" @click="addCommentModal = true" v-if="canComment">
                 <div style="display:flex;align-items:center;">
                   <it-icon name="add" style="margin-right:10px;font-size:1.2rem;"></it-icon>
                   <span style="font-size:1.2rem;font-weight:900;">Add First Comment</span>
@@ -637,7 +658,8 @@ export default {
         type: {},
       },
       roleMap: new Map(),
-      evUpdateDecision:{value:1}
+      evUpdateDecision:{value:1},
+      canComment:false
     };
   },
   mounted() {
@@ -683,6 +705,21 @@ export default {
                   this.proposal.student = segment.end.properties;
                   this.proposal.student.avatar = `${endpoint.storage}/media/avatar_${this.proposal.student.uid}.png`;
                   this.roleMap.set(this.proposal.student.uid,'student')
+
+                  let miniSession = driver.session();
+                  miniSession.run('MATCH (u:User {uid:$uid})-[:STUDENT_OF]-(s:Session) RETURN s',{uid:this.proposal.student.uid}).then( result_1 => {
+                    result_1.records.forEach((data_1) => {
+                      let userSession = data_1.get("s").properties;
+                      console.log(userSession)
+                      if(userSession){
+                        this.proposal.student.session = userSession;
+                      }
+                      
+                    })
+
+                    miniSession.close()
+                  })
+
                   break;
 
                 case "EVALUATES":
@@ -719,8 +756,41 @@ export default {
           }
 
           this.isEvaluator = false;
+          this.canComment = false;
+          
+          
+          if(this.roleMap.get(this.$store.state.user.uid) == 'student'){
+            if(!this.$store.state.rules.comment.mute_student_comment){
+              this.canComment = true;
+            }else{
+              this.canComment = false;
+            }
+          }else
 
-          // console.log(this.$store.state.user.uid,this.proposal.evaluator)
+          if(this.roleMap.get(this.$store.state.user.uid) == 'evaluator'){
+            if(this.$store.state.rules.comment.mute_evaluator_before_submission && this.proposal.status < 1){
+              this.canComment = false;
+            }else{
+              this.canComment = true;
+            }            
+          }else
+
+          if(this.roleMap.get(this.$store.state.user.uid) == 'supervisor'){
+            if(this.$store.state.rules.comment.mute_supervisor_after_submission && this.proposal.status >= 1){
+              this.canComment = false;
+            }else{
+              this.canComment = true;
+            }            
+          }else
+
+          if(this.$store.state.user.level == 3 && this.$store.state.rules.comment.allow_psm_committee_to_comment){
+            this.canComment = true;
+          }else{
+            this.canComment = false;
+          }
+
+          
+          
 
           this.proposal.evaluator.forEach((ev) => {
             if (ev.uid == this.$store.state.user.uid) {
@@ -733,10 +803,15 @@ export default {
           this.proposal = { ...this.proposal };
 
           switch (this.proposal.status) {
-            case 0:
+            case -1:
               this.proposal.type_color = "danger";
               this.proposal.status_text = "Rejected";
               this.evUpdateDecision = "Rejected"
+              break;
+            case 0:
+              this.proposal.status_text = "Pending Supervisor Review";
+              // this.evUpdateDecision = {'label':'Pending Evulation','value':1}
+              this.evUpdateDecision = "Pending Supervisor Review"
               break;
             case 1:
               this.proposal.status_text = "Pending Evaluation";
@@ -935,19 +1010,42 @@ export default {
 
       session
         .run(
-          "MATCH (u:User),(p:Proposal {uid:$p_uid}) WHERE u.level >=2 AND u.level<=3 AND NOT (u)-[:SUPERVISES]->(p) AND NOT (u)-[:EVALUATES]->(p) RETURN u",
+          "MATCH (u:User)-[:LECTURER_OF]->(s:Subject),(p:Proposal {uid:$p_uid}) WHERE u.level >=2 AND u.level<=3 AND NOT (u)-[:SUPERVISES]->(p) AND NOT (u)-[:EVALUATES]->(p) RETURN u,s",
           {
             p_uid: this.proposal_uid,
           }
         )
         .then((result) => {
+
           result.records.forEach((data) => {
             let lect = data.get("u").properties;
             lect.avatar = `${endpoint.storage}/media/avatar_${lect.uid}.png`;
+            lect.subject = data.get("s").properties
             // console.log(lect.avatar);
             delete lect["password"];
             this.availableEv.push(lect);
+
           });
+
+          let subjectArr = [];
+          let domainArr = [];
+
+          if(this.$store.state.rules.evaluator.match_subject){
+            subjectArr = this.availableEv.filter( _ev => _ev.subject.uid == this.proposal.subject.uid)
+          }else{
+            subjectArr = [...this.availableEv]
+          }
+
+          this.availableEv = subjectArr
+
+          if(this.$store.state.rules.evaluator.match_domain){
+            domainArr = this.availableEv.filter( _ev => _ev.domain.toUpperCase() == this.proposal.type.toUpperCase())
+          }else{
+            domainArr = [...this.availableEv];
+          }
+
+          this.availableEv = domainArr
+
         });
     },
 
@@ -1098,11 +1196,15 @@ export default {
           break;
 
           case "Rejected":
-            statCode = 0;
+            statCode = -1;
           break;
 
           case "Pending Evaluation":
             statCode = 1;
+          break;
+
+          case "Pending Supervisor Review":
+            statCode = 0;
           break;
 
         }
@@ -1172,6 +1274,10 @@ export default {
         container.scrollTop = container.scrollHeight;
         console.log(this.proposal.comment)
       }, 500)
+    },
+    intersect(a, b) {
+      var setB = [...new Set(b)];
+      return [...new Set(a)].filter(x => setB.filter(_b => _b.uid == x.uid));
     }
   },
 };

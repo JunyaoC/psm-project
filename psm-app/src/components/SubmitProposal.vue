@@ -11,8 +11,10 @@
         v-model="student_proposal.title"
       ></it-input>
 
-      <it-select
+      <div style="margin-top:1rem;">
+        <it-select
         label-top="Project Type"
+        :disabled="$store.state.rules.proposal.match_supervisor_domain"
         :options="[
           { name: 'Research', key: 'research' },
           { name: 'Development', key: 'development' },
@@ -20,6 +22,10 @@
         track-by="key"
         v-model="student_proposal.type"
       ></it-select>
+      <br>
+      <span v-if="$store.state.rules.proposal.match_supervisor_domain" style="font-size:0.8rem;font-style:italic;">Your proposal need to match your supervisor's domain</span>
+      </div>
+      
       
       <div style="margin-top:1rem;">
         <div style="width:100%;display:flex;justify-content:space-between;align-items:center;">
@@ -30,7 +36,7 @@
         
       </div>
 
-      <div style="margin-top:1rem;">
+      <div style="margin-top:1rem;" v-if="$store.state.rules.proposal.allow_attachments">
         <span style="font-size:14px;color:#232323;">Additional Files</span><br>
         <span style="font-size:0.8rem;">You can attach additional supporting document here if needed.</span><br>
         <input @change="selectAttachment" type="file" multiple >
@@ -67,6 +73,39 @@
           attachments:[]
         }
       }
+    },
+    mounted(){
+
+      let waitFetch = new Promise( resolve => {
+        let counter = 0;
+        let timer = setInterval( () => {
+          if(this.$store.state.user.supervisor.domain || counter == 10){
+            if(counter == 10){
+              console.warn("Slow Internet?")
+            }
+            clearInterval(timer);
+            counter +=1;
+            resolve(true);
+          }
+        },1000)
+      })
+
+      waitFetch.then( () => {
+        if(this.$store.state.rules.proposal.match_supervisor_domain){
+  
+          switch(this.$store.state.user.supervisor.domain){
+            case "Research":
+              this.student_proposal.type = { name: 'Research', key: 'research' }
+              break;
+            case "Development":
+              this.student_proposal.type = { name: 'Development', key: 'development' }
+              break;
+          }
+  
+          
+        }
+
+      })
     },
     methods:{
       downloadForm(){
@@ -153,7 +192,7 @@
           p_uid: proposalUID,
           p_title:this.student_proposal.title,
           p_type:this.student_proposal.type.key,
-          p_status: 1
+          p_status: this.$store.state.rules.proposal.require_supervisor_submit ? 0 : 1 
         }).then((result) => {
           
           this.$Notification({

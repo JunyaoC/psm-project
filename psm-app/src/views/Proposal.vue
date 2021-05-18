@@ -8,7 +8,7 @@
 
       <div style="padding:1rem;">
         <div>
-          <div style="margin-bottom:1rem;">
+          <div style="margin:1rem 0;">
             <span>Project Type</span>
           </div>
 
@@ -19,7 +19,7 @@
 
         </div>
         <div>
-          <div style="margin-bottom:1rem;">
+          <div style="margin:1rem 0;">
             <span>Semester</span>
           </div>
 
@@ -30,15 +30,22 @@
 
         </div>
         <div>
-          <div style="margin-bottom:1rem;">
+          <div style="margin:1rem 0;">
             <span>Academic Session</span>
           </div>
 
           <div v-for="session in filters.session" :key="session">
             <it-checkbox :label="session.label" v-model="session.value"></it-checkbox>
           </div>
+        </div>
+        <div>
+          <div style="margin:1rem 0;">
+            <span>Status</span>
+          </div>
 
-
+          <div v-for="status in filters.status" :key="status">
+            <it-checkbox :label="status.label" v-model="status.show"></it-checkbox>
+          </div>
         </div>
       </div>
 
@@ -55,7 +62,7 @@
 
 
 
-            <div v-if="viewMode == 'Grid'" class="proposalWrapper">
+        <div v-if="viewMode == 'Grid'" class="proposalWrapper">
           <div
             v-for="proposal in filteredProposals"
             :key="proposal"
@@ -96,13 +103,23 @@
                   width: 1rem;
                   height: 1rem;
                   border-radius: 50%;
+                  background: #54d8ac;
+                  margin-right: 0.5rem;
+                "
+              ></div>
+              <div
+                v-if="proposal.status == -1"
+                style="
+                  width: 1rem;
+                  height: 1rem;
+                  border-radius: 50%;
                   background: #ff4f4f;
                   margin-right: 0.5rem;
                 "
               ></div>
 
               <div
-                v-if="proposal.status == 2"
+                v-if="proposal.status == 1"
                 style="
                   width: 1rem;
                   height: 1rem;
@@ -124,7 +141,7 @@
               ></div>
 
               <div
-                v-if="proposal.status == 1"
+                v-if="proposal.status == 2"
                 style="
                   width: 1rem;
                   height: 1rem;
@@ -148,7 +165,7 @@
                 margin: 1rem 0;
               "
             >
-              <table style="width: 100%; table-layout: fixed">
+              <table style="width: 100%;">
                 <tr>
                   <td style="font-size: 0.8rem">student</td>
                   <td style="font-size: 0.8rem">supervisor</td>
@@ -199,7 +216,7 @@
                       style="flex-shrink: 0; margin-right: 15px"
                     >
                       <it-avatar size="30px" :src="ev.avatar"></it-avatar>
-                    </it-tooltip>
+                    </it-tooltip>                   
                   </td>
                 </tr>
               </table>
@@ -246,7 +263,7 @@
             </tr>
 
             <tr
-              v-for="proposal in proposals"
+              v-for="proposal in filteredProposals"
               :key="proposal"
               @click="viewProposal(proposal)"
             >
@@ -329,6 +346,13 @@ export default {
         project_type:[],
         semester:[],
         session:[],
+        status:[
+          { label:'Rejected', value: -1, show:true },
+          { label:'Pending Supervisor Review', value: 0, show:true },
+          { label:'Pending Evaluation', value: 1, show:true },
+          { label:'Accepted with Conditions', value: 2, show:true },
+          { label:'Accepted', value: 3, show:true }
+        ],
         reload:false
       }
     };
@@ -393,53 +417,42 @@ export default {
                   proposalObj["subject"] = segment.end.properties;
                 }
 
-                if (segment.relationship.type == "PROPOSAL_OWNER") {
-                  proposalObj["owner"] = segment.end.properties;
-                  delete proposalObj["owner"]["password"];
-                  proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
-                }
-              });
-
-              data.get("p2").segments.forEach((segment) => {
-                if (segment.relationship.type == "STUDENT_OF") {
-                  console.log(segment.end.properties,0)
-                  proposalObj["session"] = segment.end.properties;
-                }
-
-                if (segment.relationship.type == "PROPOSAL_OWNER") {
-                  proposalObj["owner"] = segment.end.properties;
-                  delete proposalObj["owner"]["password"];
-                  proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
-                }
+                // if (segment.relationship.type == "PROPOSAL_OWNER") {
+                //   console.log(segment.start.properties.title,segment.end.properties.name,proposalObj)
+                //   proposalObj["owner"] = segment.end.properties;
+                //   delete proposalObj["owner"]["password"];
+                //   proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
+                // }
               });
 
               proposalMap.set(path.start.properties.uid, proposalObj);
             });
 
-            proposalMap.forEach((val, key) => {
-              switch (val.status) {
-                case 0:
-                  val.type_color = "danger";
-                  val.status_text = "Rejected";
-                  break;
-                case 1:
-                  val.status_text = "Pending Evaluation";
-                  break;
-                case 2:
-                  val.type_color = "warning";
-                  val.status_text = "Accepted with Condition";
-                  break;
+            result.records.forEach((data) => {
 
-                case 3:
-                  val.type_color = "success";
-                  val.status_text = "Accepted";
-                  break;
+              let path2 = data.get("p2");
+
+              if (proposalMap.has(path2.start.properties.uid)) {
+                proposalObj = proposalMap.get(path2.start.properties.uid);
+              } else {
+                proposalObj = { ...path2.start.properties };
               }
 
-              this.proposals.push({ ...val });
-            });
+              path2.segments.forEach((segment) => {
+                  if (segment.relationship.type == "STUDENT_OF") {
+                    proposalObj["session"] = segment.end.properties;
+                  }
+  
+                  if (segment.relationship.type == "PROPOSAL_OWNER") {
+                    // console.log(segment.start.properties.title,segment.end.properties.name,proposalObj)
+                    proposalObj["owner"] = segment.end.properties;
+                    delete proposalObj["owner"]["password"];
+                    proposalObj.owner.avatar = `${endpoint.storage}/media/avatar_${proposalObj.owner.uid}.png`;
+                  }
+                });
+            })
 
-            console.log(this.proposals);
+
 
             session.close();
             resolve(true)
@@ -550,13 +563,26 @@ export default {
 
               proposalMap.set(path.start.properties.uid, proposalObj);
             });
+            // console.log(this.proposals);
 
-            proposalMap.forEach((val, key) => {
+            session.close();
+            resolve(true)
+          });
+      }
+      })
+
+      await fetchPromise;
+
+                  proposalMap.forEach((val, key) => {
+              
               switch (val.status) {
-                case 0:
+                case -1:
                   val.type_color = "danger";
                   val.status_text = "Rejected";
                   break;
+                case 0:
+                  val.status_text = "Pending Supervisor Review";
+                  break
                 case 1:
                   val.status_text = "Pending Evaluation";
                   break;
@@ -574,15 +600,6 @@ export default {
               this.proposals.push({ ...val });
             });
 
-            // console.log(this.proposals);
-
-            session.close();
-            resolve(true)
-          });
-      }
-      })
-
-      await fetchPromise;
 
       let projectTypeMap = new Map();
       let semesterMap = new Map();
@@ -636,6 +653,16 @@ export default {
     viewProposal(proposal) {
       this.$router.push("detail?proposal_uid=" + proposal.uid);
     },
+    intersect(a, b) {
+      if(a && b){
+        let arr1 = a.filter(e => {
+          console.log('E',e)
+          return b.some(item => item.uid === e.uid); // take the ! out and you're done
+        });
+
+        return arr1
+      }
+    }
   },
   computed: {
 
@@ -643,34 +670,47 @@ export default {
 
       let proposalMap = new Map();
 
+      let project_type_arr = [];
+      let semester_arr = [];
+      let session_arr = [];
+      let status_arr = [];
+
       this.proposals.forEach( _proposal => {
+
         this.filters.project_type.forEach( _type => {
 
           if(_type.value){
             if(_proposal.type == _type.label){
-              if(!proposalMap.has(_proposal.uid)){
-                proposalMap.set(_proposal.uid, _proposal);
-              }
+              // if(!proposalMap.has(_proposal.uid)){
+              //   proposalMap.set(_proposal.uid, _proposal);
+              // }
+              project_type_arr.push({..._proposal});
             }
           }          
         })
 
         this.filters.semester.forEach(_sem => {
-                    if(_sem.value){
-            if(String(_proposal.owner.semester) == _sem.label){
-              if(!proposalMap.has(_proposal.uid)){
-                proposalMap.set(_proposal.uid, _proposal);
-              }
+          if(_sem.value){
+            if(String(_proposal.owner.semester) == String(_sem.label)){
+              console.log(_proposal.title)
+              semester_arr.push({..._proposal})
             }
           }
         })
 
         this.filters.session.forEach(_session => {
-                    if(_session.value){
+          if(_session.value){
             if(String(_proposal.session.name) == _session.label){
-              if(!proposalMap.has(_proposal.uid)){
-                proposalMap.set(_proposal.uid, _proposal);
-              }
+              session_arr.push({..._proposal})
+            }
+          }
+        })
+
+
+        this.filters.status.forEach(_status => {
+          if(_status.show){
+            if(_proposal.status == _status.value){
+              status_arr.push({..._proposal})
             }
           }
         })
@@ -678,16 +718,25 @@ export default {
 
       })
 
-      let proposalArr = [];
+      let arrays = []
+      arrays.push(project_type_arr)
+      arrays.push(semester_arr)
+      arrays.push(session_arr)
+      arrays.push(status_arr)     
 
-      proposalMap.forEach( (value,key) => {
-        proposalArr.push(value)
-      })
-      return proposalArr;    
+      
+
+      let proposalArr = [...project_type_arr]
+      console.log(proposalArr) 
+      for(let i=0;i<arrays.length;i++){
+        proposalArr = this.intersect(proposalArr,arrays[i])
+      }
+
+      return proposalArr;
       
 
 
-    }
+    },   
 
   }
 };

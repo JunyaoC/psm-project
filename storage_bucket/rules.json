@@ -1,0 +1,21 @@
+{
+  "supervisor": {
+    "select_matching_subject": false
+  },
+  "proposal": {
+    "match_supervisor_domain": true,
+    "allow_attachments":true,
+    "require_supervisor_submit":true,
+    "allow_student_edit_after_submit":false
+  },
+  "evaluator":{
+  	"match_subject":false,
+  	"match_domain":true
+  },
+  "comment":{
+  	"mute_student_comment":false,
+  	"mute_evaluator_before_submission":false,
+  	"mute_supervisor_after_submission":false,
+  	"allow_psm_committee_to_comment":true
+  }
+}

@@ -82,7 +82,7 @@
 
           <tr
             class="dataRow"
-            v-for="student in students"
+            v-for="student in filteredStudents"
             :key="student"
             
           >
@@ -305,10 +305,10 @@
         <it-switch :disabled="$store.state.user.level != 4" v-model="formData.user_committee" label="PSM Committee" />
       </div>
 
-      <h3 v-if="$store.state.user.level == 4 && formData.user_type == 'Lecturer'" >Login Credentials</h3>
+      <h3>Login Credentials</h3>
       <it-input :disabled="$store.state.user.level !=4 && formData.user_type == 'Lecturer'" label-top="Email" v-model="formData.user_email" />
       <it-input
-        v-if="operation == 'create' && $store.state.user.level == 4 && formData.user_type == 'Lecturer'"
+        v-if="operation == 'create'"
         label-top="Password"
         v-model="formData.user_password"
       />
@@ -1219,6 +1219,21 @@ export default {
       console.log(combinedResult);
 
       return combinedResult;
+
+    },
+    filteredStudents(){
+
+      console.log(this.filters)
+
+      let subjectResult;
+
+      if(this.filters.subject.uid == 'all'){
+        subjectResult = this.students;
+      }else{
+        subjectResult = this.students.filter( _l => _l.subject.uid == this.filters.subject.uid)
+      }
+
+      return subjectResult;
 
     }
   }

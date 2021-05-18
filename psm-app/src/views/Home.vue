@@ -99,6 +99,7 @@
 import router from "../router";
 import endpoint from "@/endpoint.js";
 
+
 export default {
   name: "Home",
   components: {

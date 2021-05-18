@@ -122,3 +122,8 @@ var options = {
 //    console.log("Server listening on https://localhost:3000")
 //});
 
+let rulesJSON = fs.readFileSync('rules.json');
+const rules = JSON.parse(rulesJSON);
+app.get('/rules', async (req, res, next) => {
+  res.send(rules)
+})

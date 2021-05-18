@@ -147,10 +147,16 @@ export default {
       let session = driver.session();
 
       this.availableSupervisor = [];
+      let query;
 
-      session
-        .run(
-          "MATCH (lect:User)-[:LECTURER_OF]->(sub:Subject {uid:$s_uid}) return lect",
+      if(this.$store.state.rules.supervisor.select_matching_subject){
+        query = "MATCH (lect:User)-[:LECTURER_OF]->(sub:Subject {uid:$s_uid}) return lect"
+      }else{
+        query = "MATCH (lect:User) WHERE (lect.level >= 2 AND lect.level <=3 )return lect"
+      }
+
+      session.run(
+          query,
           {
             uid: this.$store.state.user.uid,
             s_uid: this.$store.state.user.subject.uid,
@@ -174,7 +180,8 @@ export default {
 
         if (true) {
           //// check if the user has already made an agreement
-
+          this.selectLecturerModal = false;
+          this.$Message({ text: 'Submitting Supervisor Request' })
           let session = driver.session();
 
           if (this.$store.state.user.supervisor.status == "rejected") {
@@ -220,8 +227,6 @@ export default {
                   title: "Success 🎊",
                   text: `Request Sent!`,
                 });
-
-                this.selectLecturerModal = false;
                 session.close();
 
                 this.fetchStudentInfo();

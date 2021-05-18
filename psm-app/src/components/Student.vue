@@ -223,9 +223,9 @@
 
 <style lang="scss" scoped>
 
-.psuedohide{
-  display: none!important;
-}
+// .psuedohide{
+//   display: none!important;
+// }
 
 .studentWrapper {
   width: 100%;
