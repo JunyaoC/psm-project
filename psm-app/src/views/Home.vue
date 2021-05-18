@@ -5,7 +5,7 @@
 
       </div>
       <div v-if="$store.state.user">
-        <div v-if="$store.state.user.level == 3">
+        <div v-if="$store.state.user.level >= 3">
           <router-link to="/user">
           <it-tooltip placement="right">
             <template v-slot:content>
