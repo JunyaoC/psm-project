@@ -91,6 +91,12 @@
       <router-view></router-view>
     </div>
   </div>
+
+  <div style="position:fixed;bottom:1rem;right:1rem;width:150px;">
+    
+    <it-button style="width:fit-content;" type="danger" @click="resetDatabase()">RESET DATABASE</it-button>
+  </div>
+
 </template>
 
 <script>
@@ -98,7 +104,7 @@
 
 import router from "../router";
 import endpoint from "@/endpoint.js";
-
+import driver from '../neo4j.js'
 
 export default {
   name: "Home",
@@ -156,6 +162,41 @@ export default {
         
       }
     },
+    async resetDatabase(){
+      if(confirm("Reset Database will wipe all data and replace it with default values and account. Proceed?")){
+
+        this.$Message.success({ text: 'Factory Reset Commencing.' })
+
+        var session1 = driver.session()
+        var session2 = driver.session()
+
+        session1.run(`MATCH (n) DETACH DELETE n`).then( () => {
+          session2.run(`CALL apoc.cypher.runFile('/home/psm-project/backup/backup.cypher')`).then( async () => {
+  
+            let logoutPromise = new Promise( resolve => {
+            
+            let state = this.$store.state;
+            let newState = {};
+  
+            localStorage.removeItem('vuex')
+  
+            Object.keys(state).forEach(key => {
+              newState[key] = null; // or = initialState[key]
+            });
+  
+            this.$store.replaceState(newState);
+  
+            resolve(true);
+          })
+  
+          await logoutPromise;
+            window.location.replace('/login')
+          })
+        })
+
+
+      }
+    }
   },
 };
 </script>
