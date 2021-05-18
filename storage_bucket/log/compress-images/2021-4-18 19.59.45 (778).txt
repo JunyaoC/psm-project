@@ -1,0 +1,9 @@
+File from: [media/avatar_8bc41eb36d4.png]
+
+File to: [media/avatar_8bc41eb36d4.pngavatar_8bc41eb36d4.png]
+
+Compression algorithm: [pngquant]
+
+Description: Error: Command failed: C:\Users\Junyao\Documents\GitHub\psm-project\storage_bucket\node_modules\pngquant-bin\vendor\pngquant.exe --quality=20-50 -o media/avatar_8bc41eb36d4.pngavatar_8bc41eb36d4.png media/avatar_8bc41eb36d4.png
+  error: Not a PNG file (libpng failed)
+  error: cannot decode image media\avatar_8bc41eb36d4.png

@@ -397,6 +397,7 @@ import endpoint from "@/endpoint.js";
 import driver from "../neo4j.js";
 import { uid } from "uid";
 import { sha256 } from "js-sha256";
+import imageCompression from 'browser-image-compression';
 
 export default {
   name: "User",
@@ -842,8 +843,20 @@ export default {
 
           /// Continue the user creation operation.
 
+          /// Resize Image First.
+
+          const options = {
+            maxSizeMB: 0.1,
+            maxWidthOrHeight: 500,
+            useWebWorker: true
+          }
+
+          this.formData.user_avatar = await imageCompression(this.formData.user_avatar, options)
+
+
           //// UPLOAD AVATAR
           var formData = new FormData();
+          
 
           var newFile = new File(
             [this.formData.user_avatar],
@@ -1024,7 +1037,18 @@ export default {
 
         case "edit":
           if (this.formData.user_avatar) {
+
+            const options = {
+              maxSizeMB: 0.1,
+              maxWidthOrHeight: 500,
+              useWebWorker: true
+            }
+
+            this.formData.user_avatar = await imageCompression(this.formData.user_avatar, options)
+
+
             var formData = new FormData();
+
 
             var newFile = new File(
               [this.formData.user_avatar],
